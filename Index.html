@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>2Bob Aviator</title>
+
+    <style>
+        body {
+            margin: 0;
+            background: #0d0d0d;
+            font-family: Arial, sans-serif;
+            color: white;
+            text-align: center;
+        }
+
+        header {
+            padding: 15px;
+            background: #111;
+            font-size: 24px;
+            font-weight: bold;
+            color: #ff2b2b;
+            letter-spacing: 1px;
+        }
+
+        #game-area {
+            margin-top: 40px;
+        }
+
+        #multiplier {
+            font-size: 60px;
+            font-weight: bold;
+            color: #ff2b2b;
+        }
+
+        #plane {
+            margin-top: 20px;
+            font-size: 40px;
+        }
+
+        #controls {
+            margin-top: 40px;
+        }
+
+        button {
+            padding: 15px 30px;
+            margin: 10px;
+            font-size: 18px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+        }
+
+        #betBtn {
+            background: #1e90ff;
+            color: white;
+        }
+
+        #cashoutBtn {
+            background: #28a745;
+            color: white;
+        }
+
+        #history {
+            margin-top: 40px;
+            font-size: 18px;
+        }
+
+        .history-item {
+            display: inline-block;
+            margin: 5px;
+            padding: 8px 12px;
+            background: #222;
+            border-radius: 5px;
+            color: #ff2b2b;
+        }
+    </style>
+</head>
+
+<body>
+
+<header>2Bob Aviator</header>
+
+<div id="game-area">
+    <div id="multiplier">1.00x</div>
+    <div id="plane">✈️</div>
+</div>
+
+<div id="controls">
+    <button id="betBtn">Place Bet</button>
+    <button id="cashoutBtn" disabled>Cashout</button>
+</div>
+
+<div id="history"></div>
+
+<script>
+    let multiplier = 1.00;
+    let interval;
+    let isFlying = false;
+
+    const multiplierDisplay = document.getElementById("multiplier");
+    const betBtn = document.getElementById("betBtn");
+    const cashoutBtn = document.getElementById("cashoutBtn");
+    const historyDiv = document.getElementById("history");
+
+    function startFlight() {
+        isFlying = true;
+        multiplier = 1.00;
+        multiplierDisplay.textContent = multiplier.toFixed(2) + "x";
+
+        interval = setInterval(() => {
+            multiplier += Math.random() * 0.15;
+            multiplierDisplay.textContent = multiplier.toFixed(2) + "x";
+        }, 100);
+    }
+
+    function stopFlight() {
+        clearInterval(interval);
+        isFlying = false;
+
+        const item = document.createElement("div");
+        item.className = "history-item";
+        item.textContent = multiplier.toFixed(2) + "x";
+        historyDiv.prepend(item);
+    }
+
+    betBtn.onclick = () => {
+        if (!isFlying) {
+            startFlight();
+            betBtn.disabled = true;
+            cashoutBtn.disabled = false;
+        }
+    };
+
+    cashoutBtn.onclick = () => {
+        if (isFlying) {
+            stopFlight();
+            betBtn.disabled = false;
+            cashoutBtn.disabled = true;
+            alert("You cashed out at " + multiplier.toFixed(2) + "x");
+        }
+    };
+</script>
+
+</body>
+</html>
