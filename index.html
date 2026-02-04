@@ -1,114 +1,385 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>2Bob Aviator</title>
-
-    <style>
-        body {
-            margin: 0;
-            background: #0d0d0d;
-            font-family: Arial, sans-serif;
-            color: white;
-            text-align: center;
-        }
-
-        header {
-            padding: 15px;
-            background: #111;
-            font-size: 24px;
-            font-weight: bold;
-            color: #ff2b2b;
-            letter-spacing: 1px;
-        }
-
-        #game-area {
-            margin-top: 40px;
-        }
-
-        #multiplier {
-            font-size: 60px;
-            font-weight: bold;
-            color: #ff2b2b;
-        }
-
-        #plane {
-            margin-top: 20px;
-            font-size: 40px;
-        }
-
-        #controls {
-            margin-top: 40px;
-        }
-
-        button {
-            padding: 15px 30px;
-            margin: 10px;
-            font-size: 18px;
-            border: none;
-            border-radius: 8px;
-            cursor: pointer;
-        }
-
-        #betBtn {
-            background: #1e90ff;
-            color: white;
-        }
-
-        #cashoutBtn {
-            background: #28a745;
-            color: white;
-        }
-
-        #history {
-            margin-top: 40px;
-            font-size: 18px;
-        }
-
-        .history-item {
-            display: inline-block;
-            margin: 5px;
-            padding: 8px 12px;
-            background: #222;
-            border-radius: 5px;
-            color: #ff2b2b;
-        }
-    </style>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Aviator-style Demo (Simulation Only)</title>
+  <style>
+    /* ===== Simple theme & layout ===== */
+    :root{
+      --bg1:#071226; --bg2:#082033; --accent:#ffb74d; --muted:#9aa8b0; --glass: rgba(255,255,255,0.04);
+    }
+    *{box-sizing:border-box;font-family:Inter,system-ui,Arial;color:#e6eef6}
+    html,body{height:100%;margin:0;background:linear-gradient(160deg,var(--bg1),var(--bg2));}
+    .wrap{max-width:1100px;margin:18px auto;padding:18px}
+    header{display:flex;align-items:center;justify-content:space-between}
+    header h1{font-size:18px;margin:0}
+    .hud{display:flex;gap:12px;align-items:center}
+    .mult{font-weight:800;color:var(--accent);font-size:30px}
+    .status{background:var(--glass);padding:6px 10px;border-radius:8px;color:var(--muted)}
+    main{display:flex;gap:18px;margin-top:14px}
+    .left{flex:1;position:relative}
+    canvas{width:100%;height:360px;border-radius:12px;background:linear-gradient(180deg, rgba(255,255,255,0.02), transparent)}
+    #planeWrap{position:absolute;left:12px;top:12px;right:12px;bottom:12px;pointer-events:none}
+    #plane{position:absolute;width:64px;height:64px;transform-origin:center center;filter:drop-shadow(0 6px 14px rgba(0,0,0,0.6))}
+    .right{width:320px}
+    .controls{background:var(--glass);padding:12px;border-radius:12px}
+    .controls input,.controls button{width:100%;padding:10px;margin-top:8px;border-radius:10px;border:0}
+    .controls input{background:rgba(255,255,255,0.02);color:#fff}
+    .controls button{background:linear-gradient(90deg,var(--accent),#ff8a50);font-weight:700;cursor:pointer}
+    .controls button:disabled{opacity:.45;cursor:not-allowed}
+    .log{margin-top:12px;background:rgba(255,255,255,0.02);padding:10px;border-radius:10px;height:220px;overflow:auto}
+    .warn{background:#722; color:#ffd;font-weight:700;padding:8px;border-radius:8px;margin-top:10px}
+    .trail-dot{position:absolute;width:6px;height:6px;border-radius:50%;background:rgba(255,183,77,0.9);pointer-events:none;transform:translate(-50%,-50%);filter:blur(1px)}
+    footer{margin-top:12px;color:var(--muted);font-size:13px}
+    @keyframes fall{0%{transform:translateY(-10px) rotate(-8deg) scale(1);opacity:1}100%{transform:translateY(160px) rotate(60deg) scale(.6);opacity:0}}
+  </style>
 </head>
-
 <body>
+  <div class="wrap">
+    <header>
+      <h1>Aviator-style Demo (Simulation)</h1>
+      <div class="hud">
+        <div class="mult">x <span id="mult">1.00</span></div>
+        <div id="status" class="status">Waiting</div>
+      </div>
+    </header>
 
-<header>2Bob Aviator</header>
+    <main>
+      <div class="left">
+        <canvas id="graph" width="900" height="360"></canvas>
+        <div id="planeWrap">
+          <!-- simple plane SVG -->
+          <svg id="plane" viewBox="0 0 64 64" width="64" height="64">
+            <g>
+              <path d="M2 32 C20 22 44 18 62 12 L54 20 L40 18 L12 28 Z" fill="#fff"/>
+              <rect x="8" y="30" width="40" height="6" rx="3" fill="#e6e6e6"/>
+              <polygon points="54,20 62,12 56,28" fill="#ffb74d"/>
+            </g>
+          </svg>
+        </div>
+      </div>
 
-<div id="game-area">
-    <div id="multiplier">1.00x</div>
-    <div id="plane">✈️</div>
-</div>
+      <aside class="right">
+        <div class="controls">
+          <label>
+            Bet amount (demo currency)
+            <input id="bet" type="number" min="1" step="1" value="10">
+          </label>
+          <button id="startBtn">Place Bet & Start Round</button>
+          <button id="cashBtn" disabled>Cash Out</button>
 
-<div id="controls">
-    <button id="betBtn">Place Bet</button>
-    <button id="cashoutBtn" disabled>Cashout</button>
-</div>
+          <div style="margin-top:10px;color:var(--muted);font-size:13px">
+            NOTE: This is a UI demo / simulation only. Do NOT use with real money. Integration points for a secure backend are commented in the script.
+          </div>
+        </div>
 
-<div id="history"></div>
-<script>
-    let multiplier = 1.00;
-    let crashPoint = 0;
-    let interval;
-    let isFlying = false;
+        <div class="log">
+          <h3 style="margin:0 0 8px 0;color:var(--muted)">Round log</h3>
+          <div id="logList"></div>
+        </div>
+      </aside>
+    </main>
 
-    const multiplierDisplay = document.getElementById("multiplier");
-    const betBtn = document.getElementById("betBtn");
-    const cashoutBtn = document.getElementById("cashoutBtn");
-    const historyDiv = document.getElementById("history");
+    <footer>
+      Demo only. For real-money play you must implement a secure backend (server-side round management, payments, compliance, provably-fair commit/reveal, KYC).
+    </footer>
+  </div>
 
-    function generateCrashPoint() {
-        // Simulated crash algorithm
-        return (1 / (Math.random())) * 1.01;
+  <script>
+    // ===========================
+    // Aviator-style single-file demo
+    // Simulation only. NOT for real money.
+    // Integration points for a backend are commented below:
+    //
+    // - On "Place Bet & Start Round": send bet + account token to server -> server returns roundId and commitment (serverSeedHash).
+    // - Listen for real-time updates via WebSocket (round start, multiplier updates, crash event) or query endpoints.
+    // - On "Cash Out": send cashout request to server to lock payout. Server should return success/failure and payout amount.
+    // - At round end: server reveals serverSeed for provably-fair verification.
+    //
+    // All financial / authentication actions MUST be implemented on a secure server.
+    // ===========================
+
+    const canvas = document.getElementById('graph');
+    const ctx = canvas.getContext('2d', { alpha: true });
+    const multEl = document.getElementById('mult');
+    const statusEl = document.getElementById('status');
+    const startBtn = document.getElementById('startBtn');
+    const cashBtn = document.getElementById('cashBtn');
+    const betInput = document.getElementById('bet');
+    const logList = document.getElementById('logList');
+    const plane = document.getElementById('plane');
+    const planeWrap = document.getElementById('planeWrap');
+
+    let running = false;
+    let startTime = 0;
+    let crashMultiplier = 1;
+    let growthRate = 0.12;
+    let rafId = null;
+    let points = [];
+    let cashedOut = false;
+    let currentMultiplier = 1;
+    let roundId = null; // in production this would come from server
+
+    // Simple heavy-tail sample
+    function sampleCrash() {
+      const u = Math.random();
+      const base = 1 / (1 - u);
+      const m = 1 + Math.min(base * 0.15, 300);
+      return Math.max(1.0, +(m + (Math.random() - 0.5)).toFixed(2));
     }
 
-    function startFlight() {
+    // START ROUND (UI + simulation)
+    async function startRound() {
+      if (running) return;
+
+      const bet = Number(betInput.value) || 0;
+      if (bet <= 0) { addLog('Set a bet > 0'); return; }
+
+      // -----------------------------
+      // Integration point (example):
+      // In production you would POST to your backend:
+      // POST /api/place-bet { amount: bet }
+      // Server responds: { roundId, serverSeedHash, status: "queued" }
+      // Then join WebSocket room for roundId to receive start/crash events.
+      // -----------------------------
+
+      // For demo we simulate a successful server response:
+      roundId = 'demo-' + Date.now();
+      addLog(`Bet placed: ${bet} (simulated). roundId=${roundId}`);
+
+      running = true;
+      cashedOut = false;
+      points = [];
+      ctx.clearRect(0,0,canvas.width,canvas.height);
+      startTime = performance.now();
+      crashMultiplier = sampleCrash();
+      // Map crash to growthRate/time: pick a decay so the crash happens after a reasonable time
+      growthRate = Math.log(crashMultiplier) / (2200 + Math.random()*4200);
+      statusEl.textContent = 'In Play';
+      multEl.textContent = '1.00';
+      startBtn.disabled = true;
+      cashBtn.disabled = false;
+      plane.style.transition = 'transform 0.05s linear';
+      plane.style.opacity = '1';
+      // clear trails (if any)
+      const existing = planeWrap.querySelectorAll('.trail-dot');
+      existing.forEach(n=>n.remove());
+      rafId = requestAnimationFrame(loop);
+      addLog(`Round started (simulated). crash target ≈ x${crashMultiplier.toFixed(2)}`);
+    }
+
+    function loop(ts) {
+      const elapsed = ts - startTime; // ms
+      // multiplier = exp(growthRate * elapsed)
+      const multiplier = Math.exp(growthRate * elapsed);
+      currentMultiplier = multiplier;
+      multEl.textContent = multiplier.toFixed(2);
+
+      // push point
+      const x = (elapsed / 8000) * canvas.width; // 8s -> full width approx
+      const y = canvas.height - Math.min(canvas.height - 20, (Math.log(multiplier) / Math.log(3.5)) * canvas.height);
+      points.push({x,y});
+
+      drawGraph();
+
+      // update plane position to last point
+      if (points.length) {
+        const p = points[points.length-1];
+        const wrapRect = planeWrap.getBoundingClientRect();
+        const canvasRect = canvas.getBoundingClientRect();
+        const localX = p.x + (canvasRect.left - wrapRect.left);
+        const localY = p.y + (canvasRect.top - wrapRect.top);
+        plane.style.left = `${localX - 32}px`;
+        plane.style.top = `${localY - 32}px`;
+        if (points.length >= 2) {
+          const p2 = points[points.length-2];
+          const dy = p.y - p2.y;
+          const angle = Math.max(-20, Math.min(30, -dy * 0.6));
+          plane.style.transform = `rotate(${angle}deg)`;
+        }
+        spawnTrailDot(localX, localY);
+      }
+
+      // Crash check (in production, server dictates crash and not client)
+      if (multiplier >= crashMultiplier) {
+        // In production this event is sent by the server; client only receives outcome and reflects it.
+        endRound(false);
+        return;
+      }
+
+      rafId = requestAnimationFrame(loop);
+    }
+
+    function drawGraph() {
+      // light clear for motion blur
+      ctx.fillStyle = 'rgba(9,15,20,0.08)';
+      ctx.fillRect(0,0,canvas.width,canvas.height);
+
+      // grid
+      ctx.strokeStyle = 'rgba(255,255,255,0.03)';
+      ctx.lineWidth = 1;
+      for (let i=0;i<5;i++){
+        const y = (i/4)*canvas.height;
+        ctx.beginPath(); ctx.moveTo(0,y); ctx.lineTo(canvas.width,y); ctx.stroke();
+      }
+
+      // curve
+      if (points.length < 2) return;
+      ctx.beginPath();
+      ctx.lineWidth = 3;
+      const grad = ctx.createLinearGradient(0,0,canvas.width,0);
+      grad.addColorStop(0, '#ffb74d');
+      grad.addColorStop(1, '#ff8a50');
+      ctx.strokeStyle = grad;
+
+      ctx.moveTo(points[0].x, points[0].y);
+      for (let i=1;i<points.length;i++){
+        const p = points[i];
+        ctx.lineTo(p.x, p.y);
+      }
+      ctx.stroke();
+
+      // head glow
+      const head = points[points.length-1];
+      ctx.beginPath();
+      ctx.fillStyle = 'rgba(255,183,77,0.12)';
+      ctx.arc(head.x, head.y, 18, 0, Math.PI*2);
+      ctx.fill();
+      ctx.beginPath();
+      ctx.fillStyle = '#fff8e6';
+      ctx.arc(head.x, head.y, 4, 0, Math.PI*2);
+      ctx.fill();
+    }
+
+    function spawnTrailDot(x,y){
+      const dot = document.createElement('div');
+      dot.className = 'trail-dot';
+      dot.style.left = `${x}px`;
+      dot.style.top = `${y}px`;
+      planeWrap.appendChild(dot);
+      const dx = (Math.random()-0.5)*40;
+      const dy = 20 + Math.random()*40;
+      dot.animate([
+        { transform: `translate(${dx}px, ${dy}px) scale(1)`, opacity: 0.95 },
+        { transform: `translate(${dx*1.6}px, ${dy+30}px) scale(.3)`, opacity: 0.0 }
+      ], { duration: 1200 + Math.random()*600, easing:'cubic-bezier(.2,.9,.3,1)'});
+      setTimeout(()=>dot.remove(), 2000);
+    }
+
+    function endRound(cashed) {
+      running = false;
+      cancelAnimationFrame(rafId);
+      rafId = null;
+      startBtn.disabled = false;
+      cashBtn.disabled = true;
+      if (cashed) {
+        statusEl.textContent = 'Cashed Out';
+        addLog(`Cashed out at x${currentMultiplier.toFixed(2)}`);
+      } else {
+        statusEl.textContent = 'Crashed';
+        addLog(`Crashed at x${crashMultiplier.toFixed(2)}`);
+        // crash animation
+        plane.style.transition = 'transform 1s ease-in, top 1s ease-in, opacity 0.8s';
+        plane.style.animation = 'fall 900ms ease forwards';
+        plane.style.opacity = '0.0';
+        spawnExplosion();
+      }
+
+      // -----------------------------
+      // Integration point (example):
+      // In production, the server would send the final round result (crash multiplier),
+      // and the client would show it. The client should then request serverReveal:
+      // GET /api/round-result?roundId=... -> { crashMultiplier, serverSeed }
+      // Use serverSeed to verify serverSeedHash that was provided at bet time (provably-fair).
+      // -----------------------------
+    }
+
+    function spawnExplosion(){
+      const rect = planeWrap.getBoundingClientRect();
+      const pRect = plane.getBoundingClientRect();
+      const ex = document.createElement('div');
+      ex.style.position = 'absolute';
+      ex.style.left = `${pRect.left - rect.left + 12}px`;
+      ex.style.top = `${pRect.top - rect.top + 12}px`;
+      ex.style.width = ex.style.height = '18px';
+      ex.style.borderRadius = '50%';
+      ex.style.background = 'radial-gradient(circle, rgba(255,200,100,0.9) 0%, rgba(255,130,50,0.6) 40%, rgba(255,80,0,0.0) 70%)';
+      ex.style.pointerEvents = 'none';
+      planeWrap.appendChild(ex);
+      ex.animate([
+        { transform: 'scale(0.5)', opacity: 1 },
+        { transform: 'scale(6)', opacity: 0 }
+      ], { duration: 700, easing: 'ease-out' });
+      setTimeout(()=>ex.remove(), 800);
+    }
+
+    // CASH OUT (UI + simulation)
+    async function cashOut() {
+      if (!running || cashedOut) return;
+
+      // -----------------------------
+      // Integration point (example):
+      // POST /api/cashout { roundId }
+      // Server should respond with success or failure and the locked payout.
+      // The server MUST enforce that cashouts are processed atomically server-side.
+      // -----------------------------
+
+      cashedOut = true;
+      endRound(true);
+
+      const bet = Number(betInput.value) || 0;
+      const payout = +(bet * currentMultiplier).toFixed(2);
+      addLog(`Payout: ${payout} (${bet} × x${currentMultiplier.toFixed(2)})`);
+    }
+
+    function addLog(text) {
+      const el = document.createElement('div');
+      el.style.padding = '8px';
+      el.style.borderRadius = '8px';
+      el.style.marginBottom = '6px';
+      el.style.background = 'rgba(0,0,0,0.12)';
+      el.style.fontSize = '13px';
+      el.textContent = `${new Date().toLocaleTimeString()} — ${text}`;
+      logList.prepend(el);
+      // keep last 40
+      while (logList.childElementCount > 40) logList.lastChild.remove();
+    }
+
+    // Wire up
+    startBtn.addEventListener('click', startRound);
+    cashBtn.addEventListener('click', cashOut);
+
+    // Resize canvas for high DPI
+    function resizeCanvas(){
+      const ratio = window.devicePixelRatio || 1;
+      const w = canvas.clientWidth;
+      const h = canvas.clientHeight;
+      canvas.width = Math.floor(w * ratio);
+      canvas.height = Math.floor(h * ratio);
+      canvas.style.width = w + 'px';
+      canvas.style.height = h + 'px';
+      ctx.setTransform(ratio,0,0,ratio,0,0);
+      drawGridOnly();
+    }
+    window.addEventListener('resize', resizeCanvas);
+    resizeCanvas();
+
+    function drawGridOnly(){
+      ctx.fillStyle = 'rgba(9,15,20,0.08)';
+      ctx.fillRect(0,0,canvas.width,canvas.height);
+      ctx.strokeStyle = 'rgba(255,255,255,0.03)';
+      ctx.lineWidth = 1;
+      for (let i=0;i<5;i++){
+        const y = (i/4)*canvas.height;
+        ctx.beginPath(); ctx.moveTo(0,y); ctx.lineTo(canvas.width,y); ctx.stroke();
+      }
+    }
+
+    // initial
+    addLog('Ready — place a demo bet and start round');
+
+  function startFlight() {
         isFlying = true;
         multiplier = 1.00;
         crashPoint = generateCrashPoint();
