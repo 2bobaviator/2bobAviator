@@ -4,6 +4,159 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>2Bob Aviator — REALFUN</title>
+    <meta charset="UTF-8">
+  <title>Aviator Auth</title>
+  <style>
+    body { font-family: Arial, sans-serif; margin:0; padding:0; }
+
+    /* Hide main content until login */
+    #mainContent {
+      display: none;
+      padding: 20px;
+    }
+
+    /* Modal background */
+    .modal {
+      display: block; /* Always show at start */
+      position: fixed;
+      z-index: 999;
+      left: 0; top: 0;
+      width: 100%; height: 100%;
+      background-color: rgba(0,0,0,0.5);
+    }
+
+    /* Modal content */
+    .modal-content {
+      background: #fff;
+      margin: 10% auto;
+      padding: 20px;
+      border-radius: 8px;
+      width: 300px;
+      text-align: center;
+    }
+
+    input {
+      width: 90%;
+      padding: 8px;
+      margin: 8px 0;
+    }
+
+    button {
+      padding: 10px 15px;
+      background: #28a745;
+      color: white;
+      border: none;
+      cursor: pointer;
+      border-radius: 5px;
+    }
+    button:hover { background: #218838; }
+
+    .link {
+      color: #007bff;
+      cursor: pointer;
+      display: block;
+      margin-top: 10px;
+    }
+
+    .bonus-msg {
+      color: #d9534f;
+      font-weight: bold;
+      margin-bottom: 10px;
+    }
+  </style>
+</head>
+<body>
+
+<!-- Login Modal -->
+<div id="loginModal" class="modal">
+  <div class="modal-content">
+    <h3>Login</h3>
+    <p class="bonus-msg">Login to get started with KSh 1000 bonus!</p>
+    <form id="loginForm">
+      <input type="email" name="email" placeholder="Email" required><br>
+      <input type="password" name="password" placeholder="Password" required><br>
+      <button type="submit">Login</button>
+    </form>
+    <span class="link" id="openSignup">Create New Account</span>
+  </div>
+</div>
+
+<!-- Signup Modal -->
+<div id="signupModal" class="modal" style="display:none;">
+  <div class="modal-content">
+    <h3>Sign Up</h3>
+    <p class="bonus-msg">Sign up now and instantly receive KSh 1000 bonus!</p>
+    <form id="signupForm">
+      <input type="text" name="username" placeholder="Username" required><br>
+      <input type="email" name="email" placeholder="Email" required><br>
+      <input type="password" name="password" placeholder="Password" required><br>
+      <button type="submit">Sign Up</button>
+    </form>
+  </div>
+</div>
+
+<!-- Main Content (hidden until login/signup) -->
+<div id="mainContent">
+  <h2>Welcome to Aviator Game</h2>
+  <p>Your game content goes here...</p>
+</div>
+
+<script>
+  const loginModal = document.getElementById("loginModal");
+  const signupModal = document.getElementById("signupModal");
+  const mainContent = document.getElementById("mainContent");
+
+  // Switch from login to signup
+  document.getElementById("openSignup").onclick = () => {
+    loginModal.style.display = "none";
+    signupModal.style.display = "block";
+  };
+
+  // Handle login form
+  document.getElementById("loginForm").addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const data = {
+      email: e.target.email.value,
+      password: e.target.password.value,
+    };
+    const res = await fetch("http://localhost:5000/login", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(data),
+    });
+    const result = await res.json();
+    if (result.token) {
+      alert(result.message + " Your balance: KSh " + result.balance);
+      loginModal.style.display = "none";
+      mainContent.style.display = "block"; // 👈 Unlock main content
+    } else {
+      alert(result.error);
+    }
+  });
+
+  // Handle signup form
+  document.getElementById("signupForm").addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const data = {
+      username: e.target.username.value,
+      email: e.target.email.value,
+      password: e.target.password.value,
+    };
+    const res = await fetch("http://localhost:5000/signup", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(data),
+    });
+    const result = await res.json();
+    if (!result.error) {
+      alert(result.message);
+      signupModal.style.display = "none";
+      mainContent.style.display = "block"; // 👈 Unlock main content
+    } else {
+      alert(result.error);
+    }
+  });
+      </script>
   <style>
     /* Consolidated stylesheet (trimmed duplicates) */
     * { box-sizing: border-box; }
