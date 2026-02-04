@@ -119,7 +119,7 @@
       email: e.target.email.value,
       password: e.target.password.value,
     };
-    const res = await fetch("http://localhost:5000/login", {
+    const res = await fetch("https://randomstring.trycloudflare.com/login", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(data),
@@ -142,7 +142,7 @@
       email: e.target.email.value,
       password: e.target.password.value,
     };
-    const res = await fetch("http://localhost:5000/signup", {
+    const res = await fetch("https://randomstring.trycloudflare.com/signup", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(data),
