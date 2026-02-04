@@ -1,1229 +1,311 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>2Bob Aviator — Demo</title>
   <style>
-    /* keep your existing CSS or paste the stylesheet here */
-    /* (omitted for brevity in this snippet — keep the CSS you already have) */
-        * {
-            box-sizing: border-box;
-        }
-    width: 100%;
-            height: 1px;
-            background: rgba(255, 255, 255, 0.05);
-        }
+    /* Consolidated stylesheet (trimmed duplicates) */
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      background: #05060a;
+      font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+      color: #f5f5f5;
+    }
+    header {
+      padding: 12px 20px;
+      background: #080910;
+      border-bottom: 1px solid #151623;
+      display:flex; align-items:center; justify-content:space-between;
+    }
+    .logo { display:flex; align-items:center; gap:8px; font-weight:700; color:#ff3b3b; letter-spacing:0.08em; text-transform:uppercase; font-size:18px; }
+    .logo span { font-size:22px; }
+    .header-right { font-size:12px; color:#8b8fa5; }
 
-        .grid-line:nth-child(1) { top: 20%; }
-        .grid-line:nth-child(2) { top: 40%; }
-        .grid-line:nth-child(3) { top: 60%; }
-        .grid-line:nth-child(4) { top: 80%; }
+    .container { display:flex; flex-wrap:wrap; padding:10px; gap:10px; }
+    .left-panel {
+      flex:2 1 260px;
+      background: radial-gradient(circle at top,#15172a 0,#05060a 55%);
+      border-radius:10px; padding:12px; border:1px solid #151623;
+      display:flex; flex-direction:column; justify-content:space-between; min-height:260px;
+    }
+    .right-panel {
+      flex:1 1 220px;
+      background:#080910; border-radius:10px; padding:12px; border:1px solid #151623;
+      display:flex; flex-direction:column; gap:10px;
+    }
+    .top-bar { display:flex; justify-content:space-between; font-size:11px; color:#8b8fa5; }
 
-        .history-strip {
-            margin-top: 16px;
-            display: flex;
-            flex-wrap: wrap;
-            gap: 6px;
-            font-size: 11px;
-        }
+    #multiplier { font-size:52px; font-weight:700; color:#3bff7a; text-align:center; margin-top:20px; }
 
-        .history-item {
-            padding: 4px 8px;
-            border-radius: 999px;
-            background: #151623;
-            color: #f5f5f5;
-        }
+    #plane-area { position:relative; margin-top:20px; height:140px; overflow:hidden; }
+    #plane { position:absolute; left:0; top:50%; transform:translateY(-50%); font-size:32px; transition:left 0.1s linear, transform 0.1s linear; }
 
-        .history-item.low {
-            background: #2b1114;
-            color: #ff4b5c;
-        }
+    .grid-line { position:absolute; width:100%; height:1px; background:rgba(255,255,255,0.05); }
+    .grid-line:nth-child(1){ top:20%; } .grid-line:nth-child(2){ top:40%; }
+    .grid-line:nth-child(3){ top:60%; } .grid-line:nth-child(4){ top:80%; }
 
-        .history-item.mid {
-            background: #17231b;
-            color: #3bff7a;
-        }
+    .history-strip { margin-top:16px; display:flex; flex-wrap:wrap; gap:6px; font-size:11px; }
+    .history-item { padding:4px 8px; border-radius:999px; background:#151623; color:#f5f5f5; }
+    .history-item.low { background:#2b1114; color:#ff4b5c; }
+    .history-item.mid { background:#17231b; color:#3bff7a; }
+    .history-item.high { background:#1a1f33; color:#5f8bff; }
 
-        .history-item.high {
-            background: #1a1f33;
-            color: #5f8bff;
-        }
+    .bet-tabs { display:flex; gap:6px; font-size:11px; }
+    .bet-tab { flex:1; text-align:center; padding:6px 0; border-radius:999px; background:#10111c; color:#8b8fa5; border:1px solid #151623; }
+    .bet-tab.active { background:#ff3b3b; color:#fff; border-color:#ff3b3b; }
 
-        .bet-tabs {
-            display: flex;
-            gap: 6px;
-            font-size: 11px;
-        }
+    .field-label { font-size:11px; color:#8b8fa5; margin-bottom:4px; }
+    .field { background:#05060a; border-radius:8px; border:1px solid #151623; padding:8px; display:flex; align-items:center; justify-content:space-between; font-size:13px; }
+    .field input { background:transparent; border:none; outline:none; color:#f5f5f5; width:100%; font-size:13px; }
+    .field span { color:#8b8fa5; font-size:11px; margin-left:6px; }
 
-        .bet-tab {
-            flex: 1;
-            text-align: center;
-            padding: 6px 0;
-            border-radius: 999px;
-            background: #10111c;
-            color: #8b8fa5;
-            border: 1px solid #151623;
-        }
+    .field-buttons { display:flex; gap:4px; margin-top:4px; }
+    .chip { flex:1; text-align:center; padding:4px 0; border-radius:999px; background:#10111c; color:#8b8fa5; font-size:11px; border:1px solid #151623; cursor:pointer; }
+    .chip:hover { border-color:#ff3b3b; color:#ff3b3b; }
 
-        .bet-tab.active {
-            background: #ff3b3b;
-            color: #fff;
-            border-color: #ff3b3b;
-        }
+    .balance-row { display:flex; justify-content:space-between; font-size:11px; color:#8b8fa5; }
+    .balance-row span:last-child { color:#f5f5f5; }
 
-        .field-label {
-            font-size: 11px;
-            color: #8b8fa5;
-            margin-bottom: 4px;
-        }
+    .bet-button, .cashout-button {
+      margin-top:8px; padding:10px; border-radius:8px; border:none; font-size:15px; font-weight:600; cursor:pointer;
+    }
+    .bet-button { background:linear-gradient(90deg,#ff3b3b,#ff7b3b); color:#fff; box-shadow:0 0 18px rgba(255,59,59,0.4); }
+    .bet-button:disabled { opacity:0.4; cursor:default; box-shadow:none; }
+    .cashout-button { background:#3bff7a; color:#05060a; box-shadow:0 0 18px rgba(59,255,122,0.4); }
+    .cashout-button:disabled { opacity:0.3; cursor:default; box-shadow:none; }
 
-        .field {
-            background: #05060a;
-            border-radius: 8px;
-            border: 1px solid #151623;
-            padding: 8px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            font-size: 13px;
-        }
+    .note { font-size:10px; color:#6b6f85; margin-top:4px; }
 
-        .field input {
-            background: transparent;
-            border: none;
-            outline: none;
-            color: #f5f5f5;
-            width: 100%;
-            font-size: 13px;
-        }
-
-        .field span {
-            color: #8b8fa5;
-            font-size: 11px;
-            margin-left: 6px;
-        }
-
-        .field-buttons {
-            display: flex;
-            gap: 4px;
-            margin-top: 4px;
-        }
-
-        .chip {
-            flex: 1;
-            text-align: center;
-            padding: 4px 0;
-            border-radius: 999px;
-            background: #10111c;
-            color: #8b8fa5;
-            font-size: 11px;
-            border: 1px solid #151623;
-            cursor: pointer;
-        }
-
-        .chip:hover {
-            border-color: #ff3b3b;
-            color: #ff3b3b;
-        }
-
-        .balance-row {
-            display: flex;
-            justify-content: space-between;
-            font-size: 11px;
-            color: #8b8fa5;
-        }
-
-        .balance-row span:last-child {
-            color: #f5f5f5;
-        }
-
-        .bet-button {
-            margin-top: 8px;
-            padding: 10px;
-            border-radius: 8px;
-            border: none;
-            font-size: 15px;
-            font-weight: 600;
-            cursor: pointer;
-            background: linear-gradient(90deg, #ff3b3b, #ff7b3b);
-            color: #fff;
-            box-shadow: 0 0 18px rgba(255, 59, 59, 0.4);
-        }
-
-        .bet-button:disabled {
-            opacity: 0.4;
-            cursor: default;
-            box-shadow: none;
-        }
-
-        .cashout-button {
-            margin-top: 8px;
-            padding: 10px;
-            border-radius: 8px;
-            border: none;
-            font-size: 15px;
-            font-weight: 600;
-            cursor: pointer;
-            background: #3bff7a;
-            color: #05060a;
-            box-shadow: 0 0 18px rgba(59, 255, 122, 0.4);
-        }
-
-        .cashout-button:disabled {
-            opacity: 0.3;
-            cursor: default;
-            box-shadow: none;
-        }
-
-        .note {
-            font-size: 10px;
-            color: #6b6f85;
-            margin-top: 4px;
-        }
-
-        @media (max-width: 768px) {
-            .container {
-                flex-direction: column;
-            }
-        }
-
-        body {
-            margin: 0;
-            background: #05060a;
-            font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-            color: #f5f5f5;
-        }
-
-        header {
-            padding: 12px 20px;
-            background: #080910;
-            border-bottom: 1px solid #151623;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-        }
-
-        .logo {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            font-weight: 700;
-            letter-spacing: 0.08em;
-            color: #ff3b3b;
-            text-transform: uppercase;
-            font-size: 18px;
-        }
-
-        .logo span {
-            font-size: 22px;
-        }
-
-        .header-right {
-            font-size: 12px;
-            color: #8b8fa5;
-        }
-
-        .container {
-            display: flex;
-            flex-wrap: wrap;
-            padding: 10px;
-            gap: 10px;
-        }
-
-        .left-panel {
-            flex: 2 1 260px;
-            background: radial-gradient(circle at top, #15172a 0, #05060a 55%);
-            border-radius: 10px;
-            padding: 12px;
-            border: 1px solid #151623;
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between;
-            min-height: 260px;
-        }
-
-        .right-panel {
-            flex: 1 1 220px;
-            background: #080910;
-            border-radius: 10px;
-            padding: 12px;
-            border: 1px solid #151623;
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-        }
-
-        .top-bar {
-            display: flex;
-            justify-content: space-between;
-            font-size: 11px;
-            color: #8b8fa5;
-        }
-
-        #multiplier {
-            font-size: 52px;
-            font-weight: 700;
-            color: #3bff7a;
-            text-align: center;
-            margin-top: 20px;
-        }
-
-        #plane-area {
-            position: relative;
-            margin-top: 20px;
-            height: 120px;
-            overflow: hidden;
-        }
-
-        #plane {
-            position: absolute;
-            left: 0;
-            top: 50%;
-            transform: translateY(-50%);
-            font-size: 32px;
-            transition: left 0.1s linear;
-        }
-
-        .grid-line {
-            position: absolute;
-            width: 100%;
-            height: 1px;
-            background: rgba(255, 255, 255, 0.05);
-        }
-
-        .grid-line:nth-child(1) { top: 20%; }
-        .grid-line:nth-child(2) { top: 40%; }
-        .grid-line:nth-child(3) { top: 60%; }
-        .grid-line:nth-child(4) { top: 80%; }
-
-        .history-strip {
-            margin-top: 16px;
-            display: flex;
-            flex-wrap: wrap;
-            gap: 6px;
-            font-size: 11px;
-        }
-
-        .history-item {
-            padding: 4px 8px;
-            border-radius: 999px;
-            background: #151623;
-            color: #f5f5f5;
-        }
-
-        .history-item.low {
-            background: #2b1114;
-            color: #ff4b5c;
-        }
-
-        .history-item.mid {
-            background: #17231b;
-            color: #3bff7a;
-        }
-
-        .history-item.high {
-            background: #1a1f33;
-            color: #5f8bff;
-        }
-
-        .bet-tabs {
-            display: flex;
-            gap: 6px;
-            font-size: 11px;
-        }
-
-        .bet-tab {
-            flex: 1;
-            text-align: center;
-            padding: 6px 0;
-            border-radius: 999px;
-            background: #10111c;
-            color: #8b8fa5;
-            border: 1px solid #151623;
-        }
-    
-
-        .bet-tab.active {
-            background: #ff3b3b;
-            color: #fff;
-            border-color: #ff3b3b;
-        }
-
-        .field-label {
-            font-size: 11px;
-            color: #8b8fa5;
-            margin-bottom: 4px;
-        }
-
-        .field {
-            background: #05060a;
-            border-radius: 8px;
-            border: 1px solid #151623;
-            padding: 8px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            font-size: 13px;
-        }
-
-        .field input {
-            background: transparent;
-            border: none;
-            outline: none;
-            color: #f5f5f5;
-            width: 100%;
-            font-size: 13px;
-        }
-
-        .field span {
-            color: #8b8fa5;
-            font-size: 11px;
-            margin-left: 6px;
-        }
-
-        .field-buttons {
-            display: flex;
-            gap: 4px;
-            margin-top: 4px;
-        }
-
-        .chip {
-            flex: 1;
-            text-align: center;
-            padding: 4px 0;
-            border-radius: 999px;
-            background: #10111c;
-            color: #8b8fa5;
-            font-size: 11px;
-            border: 1px solid #151623;
-            cursor: pointer;
-        }
-
-        .chip:hover {
-            border-color: #ff3b3b;
-            color: #ff3b3b;
-        }
-
-        .balance-row {
-            display: flex;
-            justify-content: space-between;
-            font-size: 11px;
-            color: #8b8fa5;
-        }
-
-        .balance-row span:last-child {
-            color: #f5f5f5;
-        }
-
-        .bet-button {
-            margin-top: 8px;
-            padding: 10px;
-            border-radius: 8px;
-            border: none;
-            font-size: 15px;
-            font-weight: 600;
-            cursor: pointer;
-            background: linear-gradient(90deg, #ff3b3b, #ff7b3b);
-            color: #fff;
-            box-shadow: 0 0 18px rgba(255, 59, 59, 0.4);
-        }
-
-        .bet-button:disabled {
-            opacity: 0.4;
-            cursor: default;
-            box-shadow: none;
-        }
-
-        .cashout-button {
-            margin-top: 8px;
-            padding: 10px;
-            border-radius: 8px;
-            border: none;
-            font-size: 15px;
-            font-weight: 600;
-            cursor: pointer;
-            background: #3bff7a;
-            color: #05060a;
-            box-shadow: 0 0 18px rgba(59, 255, 122, 0.4);
-        }
-
-        .cashout-button:disabled {
-            opacity: 0.3;
-            cursor: default;
-            box-shadow: none;
-        }
-
-        .note {
-            font-size: 10px;
-            color: #6b6f85;
-            margin-top: 4px;
-        }
-
-        @media (max-width: 768px) {
-            .container {
-                flex-direction: column;
-            }
-            }
+    @media (max-width:768px){ .container { flex-direction:column; } }
   </style>
 </head>
 <body>
+  <header>
+    <div class="logo"><span>✈️</span> 2Bob Aviator</div>
+    <div class="header-right">Demo simulation • No real money</div>
+  </header>
 
-<header>
-    <div class="logo">
-        <span>✈️</span> 2Bob Aviator
-    </div>
-    <div class="header-right">
-        Demo simulation • No real money
-    </div>
-</header>
-
-<div class="container">
-  <!-- LEFT: GAME AREA -->
-  <div class="left-panel">
-    <div class="top-bar">
-      <div>Next round starting…</div>
-      <div>2Bob Network • v0.1</div>
-    </div>
-
-    <div id="multiplier">1.00x</div>
-
-    <div id="plane-area">
-      <div class="grid-line"></div>
-      <div class="grid-line"></div>
-      <div class="grid-line"></div>
-      <div class="grid-line"></div>
-      <div id="plane">✈️</div>
-    </div>
-
-    <div class="history-strip" id="history"></div>
-  </div>
-
-  <!-- RIGHT: BET PANEL -->
-  <div class="right-panel">
-    <div class="bet-tabs">
-      <div class="bet-tab active">Manual</div>
-      <div class="bet-tab">Auto</div>
-    </div>
-
-    <div class="balance-row">
-      <span>Balance</span>
-      <span id="balanceDisplay">KSh 1,000.00</span>
-    </div>
-
-    <div>
-      <div class="field-label">Bet amount</div>
-      <div class="field">
-        <input type="number" id="betAmount" value="50" min="1">
-        <span>KSh</span>
-      </div>
-      <div class="field-buttons">
-        <div class="chip" data-amt="50">50</div>
-        <div class="chip" data-amt="100">100</div>
-        <div class="chip" data-amt="200">200</div>
-        <div class="chip" data-amt="500">500</div>
-      </div>
-    </div>
-
-    <div>
-      <div class="field-label">Auto cashout</div>
-      <div class="field">
-        <input type="number" id="autoCashout" value="2.00" step="0.1" min="1">
-        <span>x</span>
-      </div>
-      <div class="note">For demo only. No real betting.</div>
-    </div>
-
-    <button id="betBtn" class="bet-button">Place bet</button>
-    <button id="cashoutBtn" class="cashout-button" disabled>Cashout</button>
-  </div>
-</div>
-
-<script>
-/*
- Clean, single client-side simulation.
- - No canvas, no missing-element references.
- - Uses existing IDs: multiplier, plane, plane-area, betAmount, autoCashout, betBtn, cashoutBtn, history, balanceDisplay
-*/
-(function(){
-  let multiplier = 1.00;
-  let crashPoint = 0;
-  let interval = null;
-  let isFlying = false;
-  let balance = 1000.00;
-  let currentBet = 0;
-
-  const multiplierDisplay = document.getElementById("multiplier");
-  const plane = document.getElementById("plane");
-  const planeArea = document.getElementById("plane-area");
-  const betBtn = document.getElementById("betBtn");
-  const cashoutBtn = document.getElementById("cashoutBtn");
-  const historyDiv = document.getElementById("history");
-  const balanceDisplay = document.getElementById("balanceDisplay");
-  const betAmountInput = document.getElementById("betAmount");
-  const autoCashoutInput = document.getElementById("autoCashout");
-  const chips = document.querySelectorAll(".chip");
-
-  function updateBalanceDisplay() {
-    balanceDisplay.textContent = "KSh " + balance.toFixed(2);
-  }
-
-  function generateCrashPoint() {
-    // simple heavy-tail-ish distribution for demo
-    const r = Math.random();
-    if (r < 0.05) return +(1 + Math.random()).toFixed(2);        // 1–2x
-    if (r < 0.60) return +(1 + Math.random() * 4).toFixed(2);    // 1–5x
-    if (r < 0.90) return +(2 + Math.random() * 8).toFixed(2);    // 2–10x
-    return +(5 + Math.random() * 45).toFixed(2);                 // 5–50x
-  }
-
-  function addToHistory(mult, cashed) {
-    const item = document.createElement("div");
-    item.className = "history-item";
-    if (mult < 2) item.classList.add("low");
-    else if (mult < 5) item.classList.add("mid");
-    else item.classList.add("high");
-    item.textContent = mult.toFixed(2) + "x" + (cashed ? " ✓" : "");
-    historyDiv.prepend(item);
-    while (historyDiv.children.length > 15) historyDiv.removeChild(historyDiv.lastChild);
-  }
-
-  function resetPlanePosition() {
-    plane.style.left = "0%";
-    plane.style.top = "50%";
-    plane.style.transform = "translateY(-50%) rotate(0deg)";
-  }
-
-  function startFlight() {
-    isFlying = true;
-    multiplier = 1.00;
-    crashPoint = parseFloat(generateCrashPoint());
-    multiplierDisplay.textContent = multiplier.toFixed(2) + "x";
-    multiplierDisplay.style.color = "#3bff7a";
-    resetPlanePosition();
-
-    const areaWidth = planeArea.clientWidth;
-
-    interval = setInterval(() => {
-      // exponential-ish growth
-      multiplier += 0.015 * multiplier;
-      multiplierDisplay.textContent = multiplier.toFixed(2) + "x";
-
-      // move plane across the area proportional to multiplier/crashPoint
-      const progress = Math.min(multiplier / (crashPoint * 1.2), 1);
-      plane.style.left = (progress * 100) + "%";
-
-      const autoCash = parseFloat(autoCashoutInput.value || "0");
-      if (autoCash > 0 && multiplier >= autoCash && isFlying && currentBet > 0) {
-        handleCashout(true);
-      }
-
-      if (multiplier >= crashPoint && isFlying) {
-        handleCrash();
-      }
-    }, 100);
-  }
-
-  function handleCrash() {
-    clearInterval(interval);
-    isFlying = false;
-    multiplierDisplay.style.color = "#ff3b3b";
-    addToHistory(multiplier, false);
-    // locked bet already subtracted at place bet; user lost it, so no change to balance
-    currentBet = 0;
-    betBtn.disabled = false;
-    cashoutBtn.disabled = true;
-    alert("Round crashed at " + multiplier.toFixed(2) + "x — you lost the bet (demo).");
-  }
-
-  function handleCashout(auto = false) {
-    clearInterval(interval);
-    isFlying = false;
-    const win = currentBet * multiplier;
-    balance += win;
-    updateBalanceDisplay();
-    alert((auto ? "Auto " : "") + "Cashed out at " + multiplier.toFixed(2) + "x\nWin: KSh " + win.toFixed(2));
-    addToHistory(multiplier, true);
-    currentBet = 0;
-    betBtn.disabled = false;
-    cashoutBtn.disabled = true;
-    multiplierDisplay.style.color = "#3bff7a";
-  }
-
-  // Place bet
-  betBtn.addEventListener('click', () => {
-    if (isFlying) return;
-    const betVal = parseFloat(betAmountInput.value || "0");
-    if (betVal <= 0 || betVal > balance) {
-      alert("Invalid bet amount.");
-      return;
-    }
-    currentBet = betVal;
-    balance -= betVal;
-    updateBalanceDisplay();
-    betBtn.disabled = true;
-    cashoutBtn.disabled = false;
-    startFlight();
-  });
-
-  // Cashout
-  cashoutBtn.addEventListener('click', () => {
-    if (isFlying && currentBet > 0) {
-      handleCashout(false);
-    }
-  });
-
-  chips.forEach(chip => chip.addEventListener('click', () => {
-    const amt = parseFloat(chip.getAttribute('data-amt'));
-    betAmountInput.value = amt;
-  }));
-
-  // initial
-  updateBalanceDisplay();
-  resetPlanePosition();
-})();
-
-<body>
-
-<header>
-    <div class="logo">
-        <span>✈️</span> 2Bob Aviator
-    </div>
-    <div class="header-right">
-        Demo simulation • No real money
-    </div>
-</header>
-
-<div class="container">
+  <div class="container">
     <!-- LEFT: GAME AREA -->
     <div class="left-panel">
-        <div class="top-bar">
-            <div>Next round starting…</div>
-            <div>2Bob Network • v0.1</div>
-        </div>
+      <div class="top-bar">
+        <div id="roundStatus">Next round starting…</div>
+        <div>2Bob Network • v0.1</div>
+      </div>
 
-        <div id="multiplier">1.00x</div>
+      <div id="multiplier">1.00x</div>
 
-        <div id="plane-area">
-            <div class="grid-line"></div>
-            <div class="grid-line"></div>
-            <div class="grid-line"></div>
-            <div class="grid-line"></div>
-            <div id="plane">✈️</div>
-        </div>
+      <div id="plane-area" aria-hidden="true">
+        <div class="grid-line"></div>
+        <div class="grid-line"></div>
+        <div class="grid-line"></div>
+        <div class="grid-line"></div>
+        <div id="plane">✈️</div>
+      </div>
 
-        <div class="history-strip" id="history"></div>
+      <div class="history-strip" id="history" aria-live="polite"></div>
     </div>
 
     <!-- RIGHT: BET PANEL -->
     <div class="right-panel">
-        <div class="bet-tabs">
-            <div class="bet-tab active">Manual</div>
-            <div class="bet-tab">Auto</div>
-        </div>
+      <div class="bet-tabs">
+        <div class="bet-tab active" role="tab">Manual</div>
+        <div class="bet-tab" role="tab">Auto</div>
+      </div>
 
-        <div class="balance-row">
-            <span>Balance</span>
-            <span id="balanceDisplay">KSh 1,000.00</span>
-        </div>
+      <div class="balance-row"><span>Balance</span><span id="balanceDisplay">KSh 1,000.00</span></div>
 
-        <div>
-            <div class="field-label">Bet amount</div>
-            <div class="field">
-                <input type="number" id="betAmount" value="50" min="1">
-                <span>KSh</span>
-            </div>
-            <div class="field-buttons">
-                <div class="chip" data-amt="50">50</div>
-                <div class="chip" data-amt="100">100</div>
-                <div class="chip" data-amt="200">200</div>
-                <div class="chip" data-amt="500">500</div>
-            </div>
+      <div>
+        <div class="field-label">Bet amount</div>
+        <div class="field">
+          <input type="number" id="betAmount" value="50" min="1" aria-label="Bet amount">
+          <span>KSh</span>
         </div>
-
-        <div>
-            <div class="field-label">Auto cashout</div>
-            <div class="field">
-                <input type="number" id="autoCashout" value="2.00" step="0.1" min="1">
-                <span>x</span>
-            </div>
-            <div class="note">For demo only. No real betting.</div>
+        <div class="field-buttons">
+          <div class="chip" data-amt="50" tabindex="0">50</div>
+          <div class="chip" data-amt="100" tabindex="0">100</div>
+          <div class="chip" data-amt="200" tabindex="0">200</div>
+          <div class="chip" data-amt="500" tabindex="0">500</div>
         </div>
+      </div>
 
-        <button id="betBtn" class="bet-button">Place bet</button>
-        <button id="cashoutBtn" class="cashout-button" disabled>Cashout</button>
+      <div>
+        <div class="field-label">Auto cashout</div>
+        <div class="field">
+          <input type="number" id="autoCashout" value="2.00" step="0.1" min="1" aria-label="Auto cashout multiplier">
+          <span>x</span>
+        </div>
+        <div class="note">For demo only. No real betting.</div>
+      </div>
+
+      <button id="betBtn" class="bet-button">Place bet</button>
+      <button id="cashoutBtn" class="cashout-button" disabled>Cashout</button>
     </div>
-</div>
+  </div>
 
-<script>
-    let multiplier = 1.00;
-    let crashPoint = 0;
-    let interval;
-    let isFlying = false;
-    let balance = 1000;
-    let currentBet = 0;
+  <script>
+    (function () {
+      // State
+      let multiplier = 1.00;
+      let crashPoint = 0;
+      let tickTimer = null;
+      let isFlying = false;
+      let balance = 1000.00;
+      let currentBet = 0;
 
-    const multiplierDisplay = document.getElementById("multiplier");
-    const plane = document.getElementById("plane");
-    const planeArea = document.getElementById("plane-area");
-    const betBtn = document.getElementById("betBtn");
-    const cashoutBtn = document.getElementById("cashoutBtn");
-    const historyDiv = document.getElementById("history");
-    const balanceDisplay = document.getElementById("balanceDisplay");
-    const betAmountInput = document.getElementById("betAmount");
-    const autoCashoutInput = document.getElementById("autoCashout");
-    const chips = document.querySelectorAll(".chip");
+      // DOM
+      const multiplierDisplay = document.getElementById("multiplier");
+      const plane = document.getElementById("plane");
+      const planeArea = document.getElementById("plane-area");
+      const betBtn = document.getElementById("betBtn");
+      const cashoutBtn = document.getElementById("cashoutBtn");
+      const historyDiv = document.getElementById("history");
+      const balanceDisplay = document.getElementById("balanceDisplay");
+      const betAmountInput = document.getElementById("betAmount");
+      const autoCashoutInput = document.getElementById("autoCashout");
+      const chips = document.querySelectorAll(".chip");
+      const roundStatus = document.getElementById("roundStatus");
 
-    function updateBalanceDisplay() {
+      function updateBalanceDisplay() {
         balanceDisplay.textContent = "KSh " + balance.toFixed(2);
-    }
+      }
 
-    function generateCrashPoint() {
-        // Simple simulated crash distribution
+      function generateCrashPoint() {
+        // simple heavy-tail-ish distribution for demo
         const r = Math.random();
-        if (r < 0.05) return 1 + Math.random();        // 1–2x
-        if (r < 0.60) return 1 + Math.random() * 4;    // 1–5x
-        if (r < 0.90) return 2 + Math.random() * 8;    // 2–10x
-        return 5 + Math.random() * 45;                 // 5–50x
-    }
+        if (r < 0.05) return +(1 + Math.random()).toFixed(2);        // 1–2x
+        if (r < 0.60) return +(1 + Math.random() * 4).toFixed(2);    // 1–5x
+        if (r < 0.90) return +(2 + Math.random() * 8).toFixed(2);    // 2–10x
+        return +(5 + Math.random() * 45).toFixed(2);                 // 5–50x
+      }
 
-    function addToHistory(mult, cashed) {
+      function addToHistory(mult, cashed) {
         const item = document.createElement("div");
         item.className = "history-item";
-
         if (mult < 2) item.classList.add("low");
         else if (mult < 5) item.classList.add("mid");
         else item.classList.add("high");
-
         item.textContent = mult.toFixed(2) + "x" + (cashed ? " ✓" : "");
         historyDiv.prepend(item);
+        while (historyDiv.children.length > 15) historyDiv.removeChild(historyDiv.lastChild);
+      }
 
-        while (historyDiv.children.length > 15) {
-            historyDiv.removeChild(historyDiv.lastChild);
-        }
-    }
-
-    function resetPlanePosition() {
+      function resetPlanePosition() {
         plane.style.left = "0%";
-    }
+        plane.style.top = "50%";
+        plane.style.transform = "translateY(-50%) rotate(0deg)";
+      }
 
-    function startFlight() {
+      function startFlight() {
         isFlying = true;
         multiplier = 1.00;
-        crashPoint = generateCrashPoint();
+        crashPoint = parseFloat(generateCrashPoint());
         multiplierDisplay.textContent = multiplier.toFixed(2) + "x";
         multiplierDisplay.style.color = "#3bff7a";
+        roundStatus.textContent = 'In Play';
         resetPlanePosition();
 
-        const areaWidth = planeArea.clientWidth;
+        // tick rate similar to earlier implementation (100ms)
+        tickTimer = setInterval(() => {
+          // exponential-ish growth
+          multiplier += 0.015 * multiplier;
+          multiplierDisplay.textContent = multiplier.toFixed(2) + "x";
 
-        interval = setInterval(() => {
-            multiplier += 0.015 * multiplier; // exponential growth
-            multiplierDisplay.textContent = multiplier.toFixed(2) + "x";
+          // move plane proportional to multiplier/crashPoint
+          const progress = Math.min(multiplier / (crashPoint * 1.2), 1);
+          plane.style.left = (progress * 100) + "%";
 
-            const progress = Math.min(multiplier / (crashPoint * 1.2), 1);
-            plane.style.left = (progress * 100) + "%";
+          // check auto cashout
+          const autoCash = parseFloat(autoCashoutInput.value || "0");
+          if (autoCash > 0 && multiplier >= autoCash && isFlying && currentBet > 0) {
+            handleCashout(true);
+          }
 
-            const autoCash = parseFloat(autoCashoutInput.value || "0");
-            if (autoCash > 0 && multiplier >= autoCash && isFlying) {
-                handleCashout(true);
-            }
-
-            if (multiplier >= crashPoint && isFlying) {
-                handleCrash();
-            }
+          // crash
+          if (multiplier >= crashPoint && isFlying) {
+            handleCrash();
+          }
         }, 100);
-    }
+      }
 
-    function handleCrash() {
-        clearInterval(interval);
+      function handleCrash() {
+        clearInterval(tickTimer);
         isFlying = false;
         multiplierDisplay.style.color = "#ff3b3b";
+        roundStatus.textContent = `Crashed at ${multiplier.toFixed(2)}x`;
         addToHistory(multiplier, false);
+        // currentBet already subtracted when placing bet; losing means currentBet is gone
         currentBet = 0;
         betBtn.disabled = false;
         cashoutBtn.disabled = true;
-    }
+        // using alert for demo; replace with toast later
+        alert("Round crashed at " + multiplier.toFixed(2) + "x — you lost the bet (demo).");
+      }
 
-    function handleCashout(auto = false) {
-        clearInterval(interval);
+      function handleCashout(auto = false) {
+        clearInterval(tickTimer);
         isFlying = false;
-
-        const win = currentBet * multiplier;
+        const win = currentBet * multiplier; // since we subtracted bet at place, adding bet*multiplier yields profit = bet*(multiplier-1)
         balance += win;
         updateBalanceDisplay();
-
-        alert((auto ? "Auto " : "") + "Cashed out at " + multiplier.toFixed(2) + "x\nWin: KSh " + win.toFixed(2));
-
+        roundStatus.textContent = `Cashed out x${multiplier.toFixed(2)}`;
         addToHistory(multiplier, true);
+        // using alert for demo
+        alert((auto ? "Auto " : "") + "Cashed out at " + multiplier.toFixed(2) + "x\nWin: KSh " + win.toFixed(2));
         currentBet = 0;
         betBtn.disabled = false;
         cashoutBtn.disabled = true;
         multiplierDisplay.style.color = "#3bff7a";
-    }
+      }
 
-    betBtn.onclick = () => {
+      // Place bet
+      betBtn.addEventListener('click', () => {
         if (isFlying) return;
-
         const betVal = parseFloat(betAmountInput.value || "0");
-        if (betVal <= 0 || betVal > balance) {
-            alert("Invalid bet amount.");
-            return;
+        if (!Number.isFinite(betVal) || betVal <= 0) {
+          alert("Invalid bet amount.");
+          return;
         }
-
+        if (betVal > balance) {
+          alert("Insufficient balance for that bet.");
+          return;
+        }
         currentBet = betVal;
         balance -= betVal;
         updateBalanceDisplay();
-
         betBtn.disabled = true;
         cashoutBtn.disabled = false;
-
         startFlight();
-    };
+      });
 
-    cashoutBtn.onclick = () => {
-        if (isFlying) {
-            handleCashout(false);
+      // Cashout
+      cashoutBtn.addEventListener('click', () => {
+        if (isFlying && currentBet > 0) {
+          handleCashout(false);
         }
-    };
+      });
 
-    chips.forEach(chip => {
-        chip.addEventListener("click", () => {
-            const amt = parseFloat(chip.getAttribute("data-amt"));
-            betAmountInput.value = amt;
+      chips.forEach(chip => {
+        chip.addEventListener('click', () => {
+          const amt = parseFloat(chip.getAttribute('data-amt'));
+          betAmountInput.value = amt;
         });
-    });
+        // keyboard support for chips
+        chip.addEventListener('keydown', (e) => {
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            chip.click();
+          }
+        });
+      });
 
-    updateBalanceDisplay()
-    const plane = document.getElementById('plane');
-    const planeWrap = document.getElementById('planeWrap');
-
-    let running = false;
-    let startTime = 0;
-    let crashMultiplier = 1;
-    let growthRate = 0.12;
-    let rafId = null;
-    let points = [];
-    let cashedOut = false;
-    let currentMultiplier = 1;
-    let roundId = null; // in production this would come from server
-
-    // Simple heavy-tail sample
-    function sampleCrash() {
-      const u = Math.random();
-      const base = 1 / (1 - u);
-      const m = 1 + Math.min(base * 0.15, 300);
-      return Math.max(1.0, +(m + (Math.random() - 0.5)).toFixed(2));
-    }
-
-    // START ROUND (UI + simulation)
-    async function startRound() {
-      if (running) return;
-
-      const bet = Number(betInput.value) || 0;
-      if (bet <= 0) { addLog('Set a bet > 0'); return; }
-
-      // -----------------------------
-      // Integration point (example):
-      // In production you would POST to your backend:
-      // POST /api/place-bet { amount: bet }
-      // Server responds: { roundId, serverSeedHash, status: "queued" }
-      // Then join WebSocket room for roundId to receive start/crash events.
-      // -----------------------------
-
-      // For demo we simulate a successful server response:
-      roundId = 'demo-' + Date.now();
-      addLog(`Bet placed: ${bet} (simulated). roundId=${roundId}`);
-
-      running = true;
-      cashedOut = false;
-      points = [];
-      ctx.clearRect(0,0,canvas.width,canvas.height);
-      startTime = performance.now();
-      crashMultiplier = sampleCrash();
-      // Map crash to growthRate/time: pick a decay so the crash happens after a reasonable time
-      growthRate = Math.log(crashMultiplier) / (2200 + Math.random()*4200);
-      statusEl.textContent = 'In Play';
-      multEl.textContent = '1.00';
-      startBtn.disabled = true;
-      cashBtn.disabled = false;
-      plane.style.transition = 'transform 0.05s linear';
-      plane.style.opacity = '1';
-      // clear trails (if any)
-      const existing = planeWrap.querySelectorAll('.trail-dot');
-      existing.forEach(n=>n.remove());
-      rafId = requestAnimationFrame(loop);
-      addLog(`Round started (simulated). crash target ≈ x${crashMultiplier.toFixed(2)}`);
-    }
-
-    function loop(ts) {
-      const elapsed = ts - startTime; // ms
-      // multiplier = exp(growthRate * elapsed)
-      const multiplier = Math.exp(growthRate * elapsed);
-      currentMultiplier = multiplier;
-      multEl.textContent = multiplier.toFixed(2);
-
-      // push point
-      const x = (elapsed / 8000) * canvas.width; // 8s -> full width approx
-      const y = canvas.height - Math.min(canvas.height - 20, (Math.log(multiplier) / Math.log(3.5)) * canvas.height);
-      points.push({x,y});
-
-      drawGraph();
-
-      // update plane position to last point
-      if (points.length) {
-        const p = points[points.length-1];
-        const wrapRect = planeWrap.getBoundingClientRect();
-        const canvasRect = canvas.getBoundingClientRect();
-        const localX = p.x + (canvasRect.left - wrapRect.left);
-        const localY = p.y + (canvasRect.top - wrapRect.top);
-        plane.style.left = `${localX - 32}px`;
-        plane.style.top = `${localY - 32}px`;
-        if (points.length >= 2) {
-          const p2 = points[points.length-2];
-          const dy = p.y - p2.y;
-          const angle = Math.max(-20, Math.min(30, -dy * 0.6));
-          plane.style.transform = `rotate(${angle}deg)`;
-        }
-        spawnTrailDot(localX, localY);
-      }
-
-      // Crash check (in production, server dictates crash and not client)
-      if (multiplier >= crashMultiplier) {
-        // In production this event is sent by the server; client only receives outcome and reflects it.
-        endRound(false);
-        return;
-      }
-
-      rafId = requestAnimationFrame(loop);
-    }
-
-    function drawGraph() {
-      // light clear for motion blur
-      ctx.fillStyle = 'rgba(9,15,20,0.08)';
-      ctx.fillRect(0,0,canvas.width,canvas.height);
-
-      // grid
-      ctx.strokeStyle = 'rgba(255,255,255,0.03)';
-      ctx.lineWidth = 1;
-      for (let i=0;i<5;i++){
-        const y = (i/4)*canvas.height;
-        ctx.beginPath(); ctx.moveTo(0,y); ctx.lineTo(canvas.width,y); ctx.stroke();
-      }
-
-      // curve
-      if (points.length < 2) return;
-      ctx.beginPath();
-      ctx.lineWidth = 3;
-      const grad = ctx.createLinearGradient(0,0,canvas.width,0);
-      grad.addColorStop(0, '#ffb74d');
-      grad.addColorStop(1, '#ff8a50');
-      ctx.strokeStyle = grad;
-
-      ctx.moveTo(points[0].x, points[0].y);
-      for (let i=1;i<points.length;i++){
-        const p = points[i];
-        ctx.lineTo(p.x, p.y);
-      }
-      ctx.stroke();
-
-      // head glow
-      const head = points[points.length-1];
-      ctx.beginPath();
-      ctx.fillStyle = 'rgba(255,183,77,0.12)';
-      ctx.arc(head.x, head.y, 18, 0, Math.PI*2);
-      ctx.fill();
-      ctx.beginPath();
-      ctx.fillStyle = '#fff8e6';
-      ctx.arc(head.x, head.y, 4, 0, Math.PI*2);
-      ctx.fill();
-    }
-
-    function spawnTrailDot(x,y){
-      const dot = document.createElement('div');
-      dot.className = 'trail-dot';
-      dot.style.left = `${x}px`;
-      dot.style.top = `${y}px`;
-      planeWrap.appendChild(dot);
-      const dx = (Math.random()-0.5)*40;
-      const dy = 20 + Math.random()*40;
-      dot.animate([
-        { transform: `translate(${dx}px, ${dy}px) scale(1)`, opacity: 0.95 },
-        { transform: `translate(${dx*1.6}px, ${dy+30}px) scale(.3)`, opacity: 0.0 }
-      ], { duration: 1200 + Math.random()*600, easing:'cubic-bezier(.2,.9,.3,1)'});
-      setTimeout(()=>dot.remove(), 2000);
-    }
-
-    function endRound(cashed) {
-      running = false;
-      cancelAnimationFrame(rafId);
-      rafId = null;
-      startBtn.disabled = false;
-      cashBtn.disabled = true;
-      if (cashed) {
-        statusEl.textContent = 'Cashed Out';
-        addLog(`Cashed out at x${currentMultiplier.toFixed(2)}`);
-      } else {
-        statusEl.textContent = 'Crashed';
-        addLog(`Crashed at x${crashMultiplier.toFixed(2)}`);
-        // crash animation
-        plane.style.transition = 'transform 1s ease-in, top 1s ease-in, opacity 0.8s';
-        plane.style.animation = 'fall 900ms ease forwards';
-        plane.style.opacity = '0.0';
-        spawnExplosion();
-      }
-
-      // -----------------------------
-      // Integration point (example):
-      // In production, the server would send the final round result (crash multiplier),
-      // and the client would show it. The client should then request serverReveal:
-      // GET /api/round-result?roundId=... -> { crashMultiplier, serverSeed }
-      // Use serverSeed to verify serverSeedHash that was provided at bet time (provably-fair).
-      // -----------------------------
-    }
-
-    function spawnExplosion(){
-      const rect = planeWrap.getBoundingClientRect();
-      const pRect = plane.getBoundingClientRect();
-      const ex = document.createElement('div');
-      ex.style.position = 'absolute';
-      ex.style.left = `${pRect.left - rect.left + 12}px`;
-      ex.style.top = `${pRect.top - rect.top + 12}px`;
-      ex.style.width = ex.style.height = '18px';
-      ex.style.borderRadius = '50%';
-      ex.style.background = 'radial-gradient(circle, rgba(255,200,100,0.9) 0%, rgba(255,130,50,0.6) 40%, rgba(255,80,0,0.0) 70%)';
-      ex.style.pointerEvents = 'none';
-      planeWrap.appendChild(ex);
-      ex.animate([
-        { transform: 'scale(0.5)', opacity: 1 },
-        { transform: 'scale(6)', opacity: 0 }
-      ], { duration: 700, easing: 'ease-out' });
-      setTimeout(()=>ex.remove(), 800);
-    }
-
-    // CASH OUT (UI + simulation)
-    async function cashOut() {
-      if (!running || cashedOut) return;
-
-      // -----------------------------
-      // Integration point (example):
-      // POST /api/cashout { roundId }
-      // Server should respond with success or failure and the locked payout.
-      // The server MUST enforce that cashouts are processed atomically server-side.
-      // -----------------------------
-
-      cashedOut = true;
-      endRound(true);
-
-      const bet = Number(betInput.value) || 0;
-      const payout = +(bet * currentMultiplier).toFixed(2);
-      addLog(`Payout: ${payout} (${bet} × x${currentMultiplier.toFixed(2)})`);
-    }
-
-    function addLog(text) {
-      const el = document.createElement('div');
-      el.style.padding = '8px';
-      el.style.borderRadius = '8px';
-      el.style.marginBottom = '6px';
-      el.style.background = 'rgba(0,0,0,0.12)';
-      el.style.fontSize = '13px';
-      el.textContent = `${new Date().toLocaleTimeString()} — ${text}`;
-      logList.prepend(el);
-      // keep last 40
-      while (logList.childElementCount > 40) logList.lastChild.remove();
-    }
-
-    // Wire up
-    startBtn.addEventListener('click', startRound);
-    cashBtn.addEventListener('click', cashOut);
-
-    // Resize canvas for high DPI
-    function resizeCanvas(){
-      const ratio = window.devicePixelRatio || 1;
-      const w = canvas.clientWidth;
-      const h = canvas.clientHeight;
-      canvas.width = Math.floor(w * ratio);
-      canvas.height = Math.floor(h * ratio);
-      canvas.style.width = w + 'px';
-      canvas.style.height = h + 'px';
-      ctx.setTransform(ratio,0,0,ratio,0,0);
-      drawGridOnly();
-    }
-    window.addEventListener('resize', resizeCanvas);
-    resizeCanvas();
-
-    function drawGridOnly(){
-      ctx.fillStyle = 'rgba(9,15,20,0.08)';
-      ctx.fillRect(0,0,canvas.width,canvas.height);
-      ctx.strokeStyle = 'rgba(255,255,255,0.03)';
-      ctx.lineWidth = 1;
-      for (let i=0;i<5;i++){
-        const y = (i/4)*canvas.height;
-        ctx.beginPath(); ctx.moveTo(0,y); ctx.lineTo(canvas.width,y); ctx.stroke();
-      }
-    }
-
-    // initial
-    addLog('Ready — place a demo bet and start round');
-
-  function startFlight() {
-        isFlying = true;
-        multiplier = 1.00;
-        crashPoint = generateCrashPoint();
-
-        multiplierDisplay.textContent = multiplier.toFixed(2) + "x";
-
-        interval = setInterval(() => {
-            multiplier += 0.01 * multiplier; // exponential growth
-            multiplierDisplay.textContent = multiplier.toFixed(2) + "x";
-
-            if (multiplier >= crashPoint) {
-                stopFlight();
-            }
-        }, 100);
-    }
-
-    function stopFlight() {
-        clearInterval(interval);
-        isFlying = false;
-
-        const item = document.createElement("div");
-        item.className = "history-item";
-        item.textContent = multiplier.toFixed(2) + "x";
-        historyDiv.prepend(item);
-
-        betBtn.disabled = false;
-        cashoutBtn.disabled = true;
-
-        multiplierDisplay.style.color = "#ff2b2b";
-    }
-
-    betBtn.onclick = () => {
-        if (!isFlying) {
-            startFlight();
-            betBtn.disabled = true;
-            cashoutBtn.disabled = false;
-            multiplierDisplay.style.color = "#00ff00";
-        }
-    };
-
-    cashoutBtn.onclick = () => {
-        if (isFlying) {
-            clearInterval(interval);
-            isFlying = false;
-
-            alert("You cashed out at " + multiplier.toFixed(2) + "x");
-
-            const item = document.createElement("div");
-            item.className = "history-item";
-            item.textContent = multiplier.toFixed(2) + "x (cashed)";
-            historyDiv.prepend(item);
-
-            betBtn.disabled = false;
-            cashoutBtn.disabled = true;
-        }
-    };
-</script>
-
+      // initial setup
+      updateBalanceDisplay();
+      resetPlanePosition();
+      roundStatus.textContent = 'Next round starting…';
+    })();
+  </script>
 </body>
 </html>
