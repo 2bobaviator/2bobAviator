@@ -92,9 +92,9 @@
 </div>
 
 <div id="history"></div>
-
 <script>
     let multiplier = 1.00;
+    let crashPoint = 0;
     let interval;
     let isFlying = false;
 
@@ -103,14 +103,25 @@
     const cashoutBtn = document.getElementById("cashoutBtn");
     const historyDiv = document.getElementById("history");
 
+    function generateCrashPoint() {
+        // Simulated crash algorithm
+        return (1 / (Math.random())) * 1.01;
+    }
+
     function startFlight() {
         isFlying = true;
         multiplier = 1.00;
+        crashPoint = generateCrashPoint();
+
         multiplierDisplay.textContent = multiplier.toFixed(2) + "x";
 
         interval = setInterval(() => {
-            multiplier += Math.random() * 0.15;
+            multiplier += 0.01 * multiplier; // exponential growth
             multiplierDisplay.textContent = multiplier.toFixed(2) + "x";
+
+            if (multiplier >= crashPoint) {
+                stopFlight();
+            }
         }, 100);
     }
 
@@ -122,6 +133,11 @@
         item.className = "history-item";
         item.textContent = multiplier.toFixed(2) + "x";
         historyDiv.prepend(item);
+
+        betBtn.disabled = false;
+        cashoutBtn.disabled = true;
+
+        multiplierDisplay.style.color = "#ff2b2b";
     }
 
     betBtn.onclick = () => {
@@ -129,15 +145,24 @@
             startFlight();
             betBtn.disabled = true;
             cashoutBtn.disabled = false;
+            multiplierDisplay.style.color = "#00ff00";
         }
     };
 
     cashoutBtn.onclick = () => {
         if (isFlying) {
-            stopFlight();
+            clearInterval(interval);
+            isFlying = false;
+
+            alert("You cashed out at " + multiplier.toFixed(2) + "x");
+
+            const item = document.createElement("div");
+            item.className = "history-item";
+            item.textContent = multiplier.toFixed(2) + "x (cashed)";
+            historyDiv.prepend(item);
+
             betBtn.disabled = false;
             cashoutBtn.disabled = true;
-            alert("You cashed out at " + multiplier.toFixed(2) + "x");
         }
     };
 </script>
