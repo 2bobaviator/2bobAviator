@@ -1,464 +1,210 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>2Bob Aviator — REALFUN</title>
-    <meta charset="UTF-8">
-  <title>Aviator Auth</title>
-  <style>
-    body { font-family: Arial, sans-serif; margin:0; padding:0; }
-
-    /* Hide main content until login */
-    #mainContent {
-      display: none;
-      padding: 20px;
-    }
-
-    /* Modal background */
-    .modal {
-      display: block; /* Always show at start */
-      position: fixed;
-      z-index: 999;
-      left: 0; top: 0;
-      width: 100%; height: 100%;
-      background-color: rgba(0,0,0,0.5);
-    }
-
-    /* Modal content */
-    .modal-content {
-      background: #fff;
-      margin: 10% auto;
-      padding: 20px;
-      border-radius: 8px;
-      width: 300px;
-      text-align: center;
-    }
-
-    input {
-      width: 90%;
-      padding: 8px;
-      margin: 8px 0;
-    }
-
-    button {
-      padding: 10px 15px;
-      background: #28a745;
-      color: white;
-      border: none;
-      cursor: pointer;
-      border-radius: 5px;
-    }
-    button:hover { background: #218838; }
-
-    .link {
-      color: #007bff;
-      cursor: pointer;
-      display: block;
-      margin-top: 10px;
-    }
-
-    .bonus-msg {
-      color: #d9534f;
-      font-weight: bold;
-      margin-bottom: 10px;
-    }
-  </style>
+    <meta charset="UTF-8" />
+    <title>2BOB Aviator</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="stylesheet" href="style.css" />
 </head>
 <body>
+<div class="app-shell">
 
-<!-- Login Modal -->
-<div id="loginModal" class="modal">
-  <div class="modal-content">
-    <h3>Login</h3>
-    <p class="bonus-msg">Login to get started with KSh 1000 bonus!</p>
-    <form id="loginForm">
-      <input type="email" name="email" placeholder="Email" required><br>
-      <input type="password" name="password" placeholder="Password" required><br>
-      <button type="submit">Login</button>
-    </form>
-    <span class="link" id="openSignup">Create New Account</span>
-  </div>
+    <!-- HEADER -->
+    <header class="top-bar">
+        <div class="logo">
+            <span class="logo-main">2BOB</span>
+            <span class="logo-sub">AVIATOR</span>
+        </div>
+        <div class="top-right">
+            <div class="balance-box">
+                <span>Balance</span>
+                <strong id="balanceDisplay">KSh 0.00</strong>
+            </div>
+            <button class="btn small" id="depositBtn">DEPOSIT</button>
+            <button class="btn small ghost" id="withdrawBtn">WITHDRAW</button>
+            <div class="profile" id="profileArea">
+                <span id="profilePhone">Not logged in</span>
+                <button class="link" id="authBtn">Login / Signup</button>
+            </div>
+        </div>
+    </header>
+
+    <!-- MAIN LAYOUT -->
+    <main class="main-layout">
+        <!-- LEFT: GAME -->
+        <section class="game-panel">
+            <div class="game-header">
+                <div class="multiplier-display" id="multiplierDisplay">1.00x</div>
+                <div class="round-status" id="roundStatus">Next round in...</div>
+            </div>
+
+            <div class="graph-wrapper">
+                <div class="graph-glow"></div>
+                <canvas id="crashCanvas"></canvas>
+            </div>
+
+            <div class="bet-controls">
+                <div class="bet-inputs">
+                    <div class="field">
+                        <label>Bet Amount (KSh)</label>
+                        <input type="number" id="betAmount" value="50" min="1" />
+                    </div>
+                    <div class="field">
+                        <label>Auto Cashout (x)</label>
+                        <input type="number" id="autoCashout" placeholder="e.g. 2.00" step="0.01" />
+                    </div>
+                    <div class="field potential">
+                        <label>Potential Payout</label>
+                        <div id="potentialPayout">KSh 0.00</div>
+                    </div>
+                </div>
+                <div class="bet-buttons">
+                    <button class="btn big" id="betButton">PLACE BET</button>
+                    <button class="btn big danger hidden" id="cashoutButton">CASHOUT</button>
+                </div>
+            </div>
+        </section>
+
+        <!-- RIGHT: SIDEBAR -->
+        <aside class="side-panel">
+            <div class="card">
+                <h3>Recent Bets (Live Feed)</h3>
+                <div id="liveBets" class="list"></div>
+            </div>
+
+            <div class="card">
+                <h3>Your Bets</h3>
+                <div id="betHistory" class="list"></div>
+            </div>
+
+            <div class="card">
+                <h3>Round Info</h3>
+                <div class="sys-line">
+                    <span>Crash Point</span>
+                    <strong id="crashPointDisplay">–</strong>
+                </div>
+                <div class="sys-line">
+                    <span>Round</span>
+                    <strong id="roundIdDisplay">#1</strong>
+                </div>
+            </div>
+        </aside>
+    </main>
 </div>
 
-<!-- Signup Modal -->
-<div id="signupModal" class="modal" style="display:none;">
-  <div class="modal-content">
-    <h3>Sign Up</h3>
-    <p class="bonus-msg">Sign up now and instantly receive KSh 1000 bonus!</p>
-    <form id="signupForm">
-      <input type="text" name="username" placeholder="Username" required><br>
-      <input type="email" name="email" placeholder="Email" required><br>
-      <input type="password" name="password" placeholder="Password" required><br>
-      <button type="submit">Sign Up</button>
-    </form>
-  </div>
-</div>
-
-<!-- Main Content (hidden until login/signup) -->
-<div id="mainContent">
-  <h2>Welcome to Aviator Game</h2>
-  <p>Your game content goes here...</p>
-</div>
-
-<script>
-  const loginModal = document.getElementById("loginModal");
-  const signupModal = document.getElementById("signupModal");
-  const mainContent = document.getElementById("mainContent");
-
-  // Switch from login to signup
-  document.getElementById("openSignup").onclick = () => {
-    loginModal.style.display = "none";
-    signupModal.style.display = "block";
-  };
-
-  // Handle login form
-  document.getElementById("loginForm").addEventListener("submit", async (e) => {
-    e.preventDefault();
-    const data = {
-      email: e.target.email.value,
-      password: e.target.password.value,
-    };
-    const res = await fetch("https://weighted-sheep-photographers-golden.trycloudflare.com                             |           /login", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(data),
-    });
-    const result = await res.json();
-    if (result.token) {
-      alert(result.message + " Your balance: KSh " + result.balance);
-      loginModal.style.display = "none";
-      mainContent.style.display = "block"; // 👈 Unlock main content
-    } else {
-      alert(result.error);
-    }
-  });
-
-  // Handle signup form
-  document.getElementById("signupForm").addEventListener("submit", async (e) => {
-    e.preventDefault();
-    const data = {
-      username: e.target.username.value,
-      email: e.target.email.value,
-      password: e.target.password.value,
-    };
-    const res = await fetch("https://weighted-sheep-photographers-golden.trycloudflare.com                             |           /signup", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(data),
-    });
-    const result = await res.json();
-    if (!result.error) {
-      alert(result.message);
-      signupModal.style.display = "none";
-      mainContent.style.display = "block"; // 👈 Unlock main content
-    } else {
-      alert(result.error);
-    }
-  });
-      </script>
-  <style>
-    /* Consolidated stylesheet (trimmed duplicates) */
-    * { box-sizing: border-box; }
-    body {
-      margin: 0;
-      background: #05060a;
-      font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
-      color: #f5f5f5;
-    }
-    header {
-      padding: 12px 20px;
-      background: #080910;
-      border-bottom: 1px solid #151623;
-      display:flex; align-items:center; justify-content:space-between;
-    }
-    .logo { display:flex; align-items:center; gap:8px; font-weight:700; color:#ff3b3b; letter-spacing:0.08em; text-transform:uppercase; font-size:18px; }
-    .logo span { font-size:22px; }
-    .header-right { font-size:12px; color:#8b8fa5; }
-
-    .container { display:flex; flex-wrap:wrap; padding:10px; gap:10px; }
-    .left-panel {
-      flex:2 1 260px;
-      background: radial-gradient(circle at top,#15172a 0,#05060a 55%);
-      border-radius:10px; padding:12px; border:1px solid #151623;
-      display:flex; flex-direction:column; justify-content:space-between; min-height:260px;
-    }
-    .right-panel {
-      flex:1 1 220px;
-      background:#080910; border-radius:10px; padding:12px; border:1px solid #151623;
-      display:flex; flex-direction:column; gap:10px;
-    }
-    .top-bar { display:flex; justify-content:space-between; font-size:11px; color:#8b8fa5; }
-
-    #multiplier { font-size:52px; font-weight:700; color:#3bff7a; text-align:center; margin-top:20px; }
-
-    #plane-area { position:relative; margin-top:20px; height:140px; overflow:hidden; }
-    #plane { position:absolute; left:0; top:50%; transform:translateY(-50%); font-size:32px; transition:left 0.1s linear, transform 0.1s linear; }
-
-    .grid-line { position:absolute; width:100%; height:1px; background:rgba(255,255,255,0.05); }
-    .grid-line:nth-child(1){ top:20%; } .grid-line:nth-child(2){ top:40%; }
-    .grid-line:nth-child(3){ top:60%; } .grid-line:nth-child(4){ top:80%; }
-
-    .history-strip { margin-top:16px; display:flex; flex-wrap:wrap; gap:6px; font-size:11px; }
-    .history-item { padding:4px 8px; border-radius:999px; background:#151623; color:#f5f5f5; }
-    .history-item.low { background:#2b1114; color:#ff4b5c; }
-    .history-item.mid { background:#17231b; color:#3bff7a; }
-    .history-item.high { background:#1a1f33; color:#5f8bff; }
-
-    .bet-tabs { display:flex; gap:6px; font-size:11px; }
-    .bet-tab { flex:1; text-align:center; padding:6px 0; border-radius:999px; background:#10111c; color:#8b8fa5; border:1px solid #151623; }
-    .bet-tab.active { background:#ff3b3b; color:#fff; border-color:#ff3b3b; }
-
-    .field-label { font-size:11px; color:#8b8fa5; margin-bottom:4px; }
-    .field { background:#05060a; border-radius:8px; border:1px solid #151623; padding:8px; display:flex; align-items:center; justify-content:space-between; font-size:13px; }
-    .field input { background:transparent; border:none; outline:none; color:#f5f5f5; width:100%; font-size:13px; }
-    .field span { color:#8b8fa5; font-size:11px; margin-left:6px; }
-
-    .field-buttons { display:flex; gap:4px; margin-top:4px; }
-    .chip { flex:1; text-align:center; padding:4px 0; border-radius:999px; background:#10111c; color:#8b8fa5; font-size:11px; border:1px solid #151623; cursor:pointer; }
-    .chip:hover { border-color:#ff3b3b; color:#ff3b3b; }
-
-    .balance-row { display:flex; justify-content:space-between; font-size:11px; color:#8b8fa5; }
-    .balance-row span:last-child { color:#f5f5f5; }
-
-    .bet-button, .cashout-button {
-      margin-top:8px; padding:10px; border-radius:8px; border:none; font-size:15px; font-weight:600; cursor:pointer;
-    }
-    .bet-button { background:linear-gradient(90deg,#ff3b3b,#ff7b3b); color:#fff; box-shadow:0 0 18px rgba(255,59,59,0.4); }
-    .bet-button:disabled { opacity:0.4; cursor:default; box-shadow:none; }
-    .cashout-button { background:#3bff7a; color:#05060a; box-shadow:0 0 18px rgba(59,255,122,0.4); }
-    .cashout-button:disabled { opacity:0.3; cursor:default; box-shadow:none; }
-
-    .note { font-size:10px; color:#6b6f85; margin-top:4px; }
-
-    @media (max-width:768px){ .container { flex-direction:column; } }
-  </style>
-</head>
-<body>
-  <header>
-    <div class="logo"><span>✈️</span> 2Bob Aviator</div>
-    <div class="header-right">TO DEPOSIT REAL BETTING USE TILL NO: .3596518 [JOHN]</div>
-  </header>
-
-  <div class="container">
-    <!-- LEFT: GAME AREA -->
-    <div class="left-panel">
-      <div class="top-bar">
-        <div id="roundStatus">Next round starting…</div>
-        <div>2Bob Network • v0.1</div>
-      </div>
-
-      <div id="multiplier">1.00x</div>
-
-      <div id="plane-area" aria-hidden="true">
-        <div class="grid-line"></div>
-        <div class="grid-line"></div>
-        <div class="grid-line"></div>
-        <div class="grid-line"></div>
-        <div id="plane">✈️</div>
-      </div>
-
-      <div class="history-strip" id="history" aria-live="polite"></div>
+<!-- AUTH MODAL -->
+<div class="modal-backdrop hidden" id="authModal">
+    <div class="modal" id="loginModalInner">
+        <div class="modal-header">
+            <h2>Login</h2>
+        </div>
+        <div class="modal-body">
+            <div class="field">
+                <label>Phone (M-Pesa)</label>
+                <input type="tel" id="loginPhone" placeholder="07XXXXXXXX" />
+            </div>
+            <div class="field">
+                <label>Password</label>
+                <input type="password" id="loginPass" />
+            </div>
+            <div class="field checkbox">
+                <input type="checkbox" id="rememberMe" />
+                <label for="rememberMe">Remember me</label>
+            </div>
+            <button class="btn full" id="loginSubmit">LOGIN</button>
+            <div class="auth-switch">
+                <span>Don't have an account?</span>
+                <button class="link" id="toSignup">Create Account</button>
+            </div>
+        </div>
     </div>
 
-    <!-- RIGHT: BET PANEL -->
-    <div class="right-panel">
-      <div class="bet-tabs">
-        <div class="bet-tab active" role="tab">Manual</div>
-        <div class="bet-tab" role="tab">Auto</div>
-      </div>
-
-      <div class="balance-row"><span>Balance</span><span id="balanceDisplay">KSh 1,000.00</span></div>
-
-      <div>
-        <div class="field-label">Bet amount</div>
-        <div class="field">
-          <input type="number" id="betAmount" value="50" min="1" aria-label="Bet amount">
-          <span>KSh</span>
+    <div class="modal hidden" id="signupModalInner">
+        <div class="modal-header">
+            <h2>Create Account</h2>
         </div>
-        <div class="field-buttons">
-          <div class="chip" data-amt="50" tabindex="0">50</div>
-          <div class="chip" data-amt="100" tabindex="0">100</div>
-          <div class="chip" data-amt="200" tabindex="0">200</div>
-          <div class="chip" data-amt="500" tabindex="0">500</div>
+        <div class="modal-body">
+            <div class="field">
+                <label>Full Name</label>
+                <input type="text" id="signupName" />
+            </div>
+            <div class="field">
+                <label>Phone (M-Pesa)</label>
+                <input type="tel" id="signupPhone" placeholder="07XXXXXXXX" />
+            </div>
+            <div class="field">
+                <label>Password</label>
+                <input type="password" id="signupPass" />
+            </div>
+            <button class="btn full" id="signupSubmit">CREATE ACCOUNT</button>
+            <div class="auth-switch">
+                <span>Already have an account?</span>
+                <button class="link" id="toLogin">Back to Login</button>
+            </div>
         </div>
-      </div>
-
-      <div>
-        <div class="field-label">Auto cashout</div>
-        <div class="field">
-          <input type="number" id="autoCashout" value="2.00" step="0.1" min="1" aria-label="Auto cashout multiplier">
-          <span>x</span>
-        </div>
-        <div class="note">TO DEPOSIT REAL BETTING USE TILL NO: .3596518 [JOHN]</div>
-      </div>
-
-      <button id="betBtn" class="bet-button">Place bet</button>
-      <button id="cashoutBtn" class="cashout-button" disabled>Cashout</button>
     </div>
-  </div>
+</div>
 
-  <script>
-    (function () {
-      // State
-      let multiplier = 1.00;
-      let crashPoint = 0;
-      let tickTimer = null;
-      let isFlying = true;
-      let balance = 1000.00;
-      let currentBet = 0;
+<!-- DEPOSIT MODAL -->
+<div class="modal-backdrop hidden" id="depositModal">
+    <div class="modal small">
+        <div class="modal-header">
+            <h2>Deposit via M-Pesa</h2>
+        </div>
+        <div class="modal-body">
+            <div class="field">
+                <label>Amount (KSh)</label>
+                <input type="number" id="depositAmount" value="20" min="10" />
+            </div>
+            <div class="mpesa-hint">
+                Confirm to simulate balance update. If STK doesn’t appear, use manual instructions next.
+            </div>
+            <button class="btn full" id="depositConfirm">CONFIRM</button>
+            <button class="link full" id="depositCancel">Cancel</button>
+        </div>
+    </div>
+</div>
 
-      // DOM
-      const multiplierDisplay = document.getElementById("multiplier");
-      const plane = document.getElementById("plane");
-      const planeArea = document.getElementById("plane-area");
-      const betBtn = document.getElementById("betBtn");
-      const cashoutBtn = document.getElementById("cashoutBtn");
-      const historyDiv = document.getElementById("history");
-      const balanceDisplay = document.getElementById("balanceDisplay");
-      const betAmountInput = document.getElementById("betAmount");
-      const autoCashoutInput = document.getElementById("autoCashout");
-      const chips = document.querySelectorAll(".chip");
-      const roundStatus = document.getElementById("roundStatus");
+<!-- MANUAL DEPOSIT INSTRUCTIONS MODAL -->
+<div class="modal-backdrop hidden" id="depositHelpModal">
+    <div class="modal small">
+        <div class="modal-header">
+            <h2>Manual Deposit Instructions</h2>
+        </div>
+        <div class="modal-body">
+            <div class="manual-steps">
+                <p><strong>1.</strong> Go to <strong>M-Pesa</strong> on your phone.</p>
+                <p><strong>2.</strong> Select <strong>Lipa na M-Pesa</strong> → <strong>Buy Goods</strong>.</p>
+                <p><strong>3.</strong> Enter <strong>Till No:</strong> 3596518.</p>
+            
+                <p><strong>4.</strong> Enter the amount you want to deposit.</p>
+                <p><strong>5.</strong> Confirm and wait for SMS.</p>
+            </div>
+            <button class="btn full" id="depositHelpClose">DONE</button>
+        </div>
+    </div>
+</div>
 
-      function updateBalanceDisplay() {
-        balanceDisplay.textContent = "KSh " + balance.toFixed(2);
-      }
+<!-- SIMPLE ADMIN MODAL (STATS ONLY) -->
+<div class="modal-backdrop hidden" id="adminModal">
+    <div class="modal small">
+        <div class="modal-header">
+            <h2>Admin Stats</h2>
+        </div>
+        <div class="modal-body">
+            <div class="sys-line">
+                <span>Total Rounds</span>
+                <strong id="adminTotalRounds">0</strong>
+            </div>
+            <div class="sys-line">
+                <span>Total Volume (KSh)</span>
+                <strong id="adminTotalVolume">0.00</strong>
+            </div>
+            <button class="btn full" id="adminClose">Close</button>
+        </div>
+    </div>
+</div>
 
-      function generateCrashPoint() {
-        // simple heavy-tail-ish distribution for demo
-        const r = Math.random();
-        if (r < 0.05) return +(1 + Math.random()).toFixed(2);        // 1–2x
-        if (r < 0.60) return +(1 + Math.random() * 4).toFixed(2);    // 1–5x
-        if (r < 0.90) return +(2 + Math.random() * 8).toFixed(2);    // 2–10x
-        return +(5 + Math.random() * 45).toFixed(2);                 // 5–50x
-      }
-
-      function addToHistory(mult, cashed) {
-        const item = document.createElement("div");
-        item.className = "history-item";
-        if (mult < 2) item.classList.add("low");
-        else if (mult < 5) item.classList.add("mid");
-        else item.classList.add("high");
-        item.textContent = mult.toFixed(2) + "x" + (cashed ? " ✓" : "");
-        historyDiv.prepend(item);
-        while (historyDiv.children.length > 15) historyDiv.removeChild(historyDiv.lastChild);
-      }
-
-      function resetPlanePosition() {
-        plane.style.left = "0%";
-        plane.style.top = "50%";
-        plane.style.transform = "translateY(-50%) rotate(0deg)";
-      }
-
-      function startFlight() {
-        isFlying = true;
-        multiplier = 1.00;
-        crashPoint = parseFloat(generateCrashPoint());
-        multiplierDisplay.textContent = multiplier.toFixed(2) + "x";
-        multiplierDisplay.style.color = "#3bff7a";
-        roundStatus.textContent = 'In Play';
-        resetPlanePosition();
-
-        // tick rate similar to earlier implementation (100ms)
-        tickTimer = setInterval(() => {
-          // exponential-ish growth
-          multiplier += 0.015 * multiplier;
-          multiplierDisplay.textContent = multiplier.toFixed(2) + "x";
-
-          // move plane proportional to multiplier/crashPoint
-          const progress = Math.min(multiplier / (crashPoint * 1.2), 1);
-          plane.style.left = (progress * 100) + "%";
-
-          // check auto cashout
-          const autoCash = parseFloat(autoCashoutInput.value || "0");
-          if (autoCash > 0 && multiplier >= autoCash && isFlying && currentBet > 0) {
-            handleCashout(true);
-          }
-
-          // crash
-          if (multiplier >= crashPoint && isFlying) {
-            handleCrash();
-          }
-        }, 100);
-      }
-
-      function handleCrash() {
-        clearInterval(tickTimer);
-        isFlying = false;
-        multiplierDisplay.style.color = "#ff3b3b";
-        roundStatus.textContent = `Crashed at ${multiplier.toFixed(2)}x`;
-        addToHistory(multiplier, false);
-        // currentBet already subtracted when placing bet; losing means currentBet is gone
-        currentBet = 0;
-        betBtn.disabled = false;
-        cashoutBtn.disabled = true;
-        // using alert for demo; replace with toast later
-        alert("Round crashed at " + multiplier.toFixed(2) + "x — you lost the bet (demo).");
-      }
-
-      function handleCashout(auto = false) {
-        clearInterval(tickTimer);
-        isFlying = false;
-        const win = currentBet * multiplier; // since we subtracted bet at place, adding bet*multiplier yields profit = bet*(multiplier-1)
-        balance += win;
-        updateBalanceDisplay();
-        roundStatus.textContent = `Cashed out x${multiplier.toFixed(2)}`;
-        addToHistory(multiplier, true);
-        // using alert for demo
-        alert((auto ? "Auto " : "") + "Cashed out at " + multiplier.toFixed(2) + "x\nWin: KSh " + win.toFixed(2));
-        currentBet = 0;
-        betBtn.disabled = false;
-        cashoutBtn.disabled = true;
-        multiplierDisplay.style.color = "#3bff7a";
-      }
-
-      // Place bet
-      betBtn.addEventListener('click', () => {
-        if (isFlying) return;
-        const betVal = parseFloat(betAmountInput.value || "0");
-        if (!Number.isFinite(betVal) || betVal <= 0) {
-          alert("Invalid bet amount.");
-          return;
-        }
-        if (betVal > balance) {
-          alert("Insufficient balance for that bet.");
-          return;
-        }
-        currentBet = betVal;
-        balance -= betVal;
-        updateBalanceDisplay();
-        betBtn.disabled = true;
-        cashoutBtn.disabled = false;
-        startFlight();
-      });
-
-      // Cashout
-      cashoutBtn.addEventListener('click', () => {
-        if (isFlying && currentBet > 0) {
-          handleCashout(false);
-        }
-      });
-
-      chips.forEach(chip => {
-        chip.addEventListener('click', () => {
-          const amt = parseFloat(chip.getAttribute('data-amt'));
-          betAmountInput.value = amt;
-        });
-        // keyboard support for chips
-        chip.addEventListener('keydown', (e) => {
-          if (e.key === 'Enter' || e.key === ' ') {
-            e.preventDefault();
-            chip.click();
-          }
-        });
-      });
-
-      // initial setup
-      updateBalanceDisplay();
-      resetPlanePosition();
-      roundStatus.textContent = 'Next round starting…';
-    })();
-  </script>
+<script src="app.js"></script>
 </body>
 </html>
