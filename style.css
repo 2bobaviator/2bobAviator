@@ -1,0 +1,350 @@
+*,
+*::before,
+*::after {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    background: radial-gradient(circle at top, #050816 0, #02030a 55%);
+    color: #f5f5f5;
+    min-height: 100vh;
+}
+
+.app-shell {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 12px;
+}
+
+/* HEADER */
+.top-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 14px;
+    background: linear-gradient(135deg, rgba(10, 10, 20, 0.95), rgba(10, 10, 30, 0.95));
+    border-radius: 10px;
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    margin-bottom: 10px;
+    box-shadow: 0 0 20px rgba(0, 255, 153, 0.15);
+}
+
+.logo {
+    display: flex;
+    flex-direction: column;
+    line-height: 1;
+}
+
+.logo-main {
+    font-weight: 800;
+    letter-spacing: 0.12em;
+    font-size: 16px;
+}
+
+.logo-sub {
+    font-size: 11px;
+    color: #ff3366;
+    letter-spacing: 0.25em;
+}
+
+.top-right {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.balance-box {
+    background: radial-gradient(circle at top, rgba(0, 255, 153, 0.2), rgba(0, 0, 0, 0.6));
+    padding: 6px 10px;
+    border-radius: 8px;
+    display: flex;
+    flex-direction: column;
+    font-size: 11px;
+    border: 1px solid rgba(0, 255, 153, 0.4);
+}
+
+.balance-box strong {
+    font-size: 14px;
+}
+
+.profile {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    font-size: 11px;
+}
+
+/* BUTTONS */
+.btn {
+    border: none;
+    border-radius: 999px;
+    padding: 8px 16px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    background: linear-gradient(135deg, #ff3366, #ff7a00);
+    color: #fff;
+    box-shadow: 0 0 12px rgba(255, 51, 102, 0.4);
+    transition: transform 0.08s ease, box-shadow 0.08s ease, opacity 0.08s ease;
+}
+
+.btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 0 16px rgba(255, 51, 102, 0.6);
+}
+
+.btn.small {
+    padding: 6px 12px;
+    font-size: 12px;
+}
+
+.btn.big {
+    width: 100%;
+    padding: 12px 18px;
+    font-size: 15px;
+}
+
+.btn.ghost {
+    background: transparent;
+    border: 1px solid rgba(255, 255, 255, 0.25);
+    box-shadow: none;
+}
+
+.btn.danger {
+    background: linear-gradient(135deg, #ff0033, #ff6600);
+}
+
+.btn.full {
+    width: 100%;
+}
+
+.link {
+    background: none;
+    border: none;
+    color: #00ff99;
+    font-size: 12px;
+    cursor: pointer;
+    text-decoration: underline;
+}
+
+.link.full {
+    display: block;
+    text-align: center;
+    margin-top: 6px;
+}
+
+/* LAYOUT */
+.main-layout {
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    gap: 10px;
+}
+
+.game-panel,
+.side-panel {
+    background: radial-gradient(circle at top, rgba(10, 10, 25, 0.95), rgba(5, 5, 15, 0.98));
+    border-radius: 10px;
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    padding: 10px;
+}
+
+/* GAME PANEL */
+.game-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+}
+
+.multiplier-display {
+    font-size: 28px;
+    font-weight: 800;
+    color: #00ff99;
+    text-shadow: 0 0 12px rgba(0, 255, 153, 0.7);
+}
+
+.round-status {
+    font-size: 12px;
+    color: #ccc;
+}
+
+.graph-wrapper {
+    position: relative;
+    height: 260px;
+    background: radial-gradient(circle at top, #111827 0, #020617 60%);
+    border-radius: 10px;
+    overflow: hidden;
+    border: 1px solid rgba(0, 255, 153, 0.25);
+    margin-bottom: 10px;
+    box-shadow: 0 0 25px rgba(0, 255, 153, 0.15);
+}
+
+.graph-glow {
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(circle at top, rgba(0, 255, 153, 0.15), transparent 60%);
+    pointer-events: none;
+}
+
+#crashCanvas {
+    width: 100%;
+    height: 100%;
+    display: block;
+}
+
+/* BET CONTROLS */
+.bet-controls {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.bet-inputs {
+    display: grid;
+    grid-template-columns: 1.2fr 1.2fr 1fr;
+    gap: 8px;
+}
+
+.field {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    font-size: 11px;
+}
+
+.field label {
+    color: #aaa;
+}
+
+.field input {
+    background: rgba(255, 255, 255, 0.04);
+    border-radius: 8px;
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    padding: 6px 8px;
+    color: #fff;
+    font-size: 13px;
+}
+
+.field.potential {
+    justify-content: center;
+}
+
+.field.potential #potentialPayout {
+    font-weight: 700;
+    font-size: 14px;
+    color: #ffd600;
+}
+
+.bet-buttons {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+}
+
+/* SIDEBAR */
+.card {
+    background: rgba(255, 255, 255, 0.02);
+    border-radius: 8px;
+    padding: 8px;
+    margin-bottom: 8px;
+    box-shadow: 0 0 12px rgba(0, 0, 0, 0.4);
+}
+
+.card h3 {
+    font-size: 13px;
+    margin-bottom: 6px;
+}
+
+.list {
+    max-height: 180px;
+    overflow-y: auto;
+    font-size: 12px;
+}
+
+.list div {
+    padding: 4px 0;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.sys-line {
+    display: flex;
+    justify-content: space-between;
+    font-size: 12px;
+    padding: 4px 0;
+}
+
+/* MODALS */
+.modal-backdrop {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.65);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 20;
+}
+
+.modal {
+    background: #111320;
+    border-radius: 10px;
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    width: 320px;
+    max-width: 90vw;
+    padding: 10px 12px 12px;
+    box-shadow: 0 0 25px rgba(0, 0, 0, 0.7);
+}
+
+.modal.small {
+    width: 260px;
+}
+
+.modal-header h2 {
+    font-size: 16px;
+    margin-bottom: 6px;
+}
+
+.modal-body {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-top: 4px;
+}
+
+.field.checkbox {
+    flex-direction: row;
+    align-items: center;
+    gap: 6px;
+}
+
+.auth-switch {
+    text-align: center;
+    font-size: 11px;
+    margin-top: 4px;
+}
+
+.mpesa-hint {
+    font-size: 11px;
+    color: #aaa;
+}
+
+.manual-steps {
+    font-size: 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+/* UTILS */
+.hidden {
+    display: none !important;
+}
+
+/* RESPONSIVE */
+@media (max-width: 900px) {
+    .main-layout {
+        grid-template-columns: 1fr;
+    }
+}
